@@ -259,12 +259,17 @@ const CHANNELS = [
   // 탈무드 (한국어)
   { cat: "talmud", name: "동화로 듣는 탈무드", lang: "한국어 · 책보세",   list: "PLbg_P_ae3xhVjusc70u0RJ93wDrG8bwog", video: "oYGohhQl1WQ" },
   { cat: "talmud", name: "단비동화 탈무드",   lang: "한국어 · 단비Story", list: "PLkeAC1CbGV-u3M-z0iiFXvolP6S2HM1Gv", video: "TKquci0i0_I" },
+  // 재생목록이 없는 채널: 탈무드 연속듣기 1~4편(광고 없음)을 영상 ID로 묶어서 재생
+  { cat: "talmud", name: "혜니동화나라 탈무드", lang: "한국어 · 연속듣기", videos: ["akP2V-453rQ", "jbIrVkKbMok", "O-LLKcgrdkQ", "nifOZPJ3fA8"] },
   // 고사성어
   { cat: "idiom", name: "헉깨비 고사성어",     lang: "한국어 · 애니메이션", list: "PLcNnMnG-Hsia5Ip-dwcyefXZCYErjD97p", video: "wqK-rR8O5UM" },
   { cat: "idiom", name: "밝은한자 고사성어",   lang: "한국어",            list: "PLzgLTFwcfJNkWMAcotiNDGwXOTNq9T96F", video: "TyRKcQSZn58" },
   { cat: "idiom", name: "The Magic Four",    lang: "English · 중국 고사성어", list: "PLnez17UO0xpChScxPhvH8XfrVbatH9fyv", video: "iaPBAKmi4ns" },
 ];
-CHANNELS.forEach(ch => { ch.key = ch.list || ch.id; });
+CHANNELS.forEach(ch => {
+  if (ch.videos) ch.video = ch.videos[0];
+  ch.key = ch.list || ch.id || ch.videos.join(",");
+});
 /* ============================================================ */
 
 const $ = (s) => document.querySelector(s);
@@ -317,9 +322,9 @@ function openChannel(id) {
   const ch = CHANNELS.find(c => c.key === id);
   if (!ch) return;
   // 재생목록이 지정돼 있으면 그것을, 아니면 UULF(쇼츠·라이브를 뺀 일반 영상 전체)를 재생
-  const list = ch.list || ("UULF" + ch.id.slice(2));
+  const list = ch.videos ? null : (ch.list || ("UULF" + ch.id.slice(2)));
   const english = !ch.lang || ch.lang.startsWith("English");
-  const opts = { list, lang: english ? "en" : "ko", name: ch.name };
+  const opts = { list, videos: ch.videos, lang: english ? "en" : "ko", name: ch.name };
   $("#now").textContent = ch.name;
   $("#player").classList.remove("show-list");
   $("#listBtn").setAttribute("aria-pressed", "false");
@@ -335,7 +340,9 @@ function openChannel(id) {
 }
 
 function playerVars(o) {
-  return { listType: "playlist", list: o.list, rel: 0, playsinline: 1, autoplay: 1,
+  // videos: 영상 ID 여러 개를 순서대로 재생하는 임시 재생목록
+  const pl = o.videos ? { playlist: o.videos.join(",") } : { listType: "playlist", list: o.list };
+  return { ...pl, rel: 0, playsinline: 1, autoplay: 1,
            modestbranding: 1, iv_load_policy: 3, hl: o.lang, cc_lang_pref: o.lang };
 }
 
@@ -345,6 +352,7 @@ function startPlayer(o) {
   player = new YT.Player("yt", {
     host: "https://www.youtube-nocookie.com",
     width: "100%", height: "100%",
+    ...(o.videos ? { videoId: o.videos[0] } : {}),
     playerVars: playerVars(o),
     events: {
       onReady: () => { refreshList(); },
@@ -362,7 +370,8 @@ function startPlayer(o) {
 function plainPlayer(o) {
   if ($("#player").hidden) return;
   const params = new URLSearchParams(Object.entries(playerVars(o)).filter(([k]) => k !== "listType"));
-  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/videoseries?${params}"
+  const path = o.videos ? o.videos[0] : "videoseries";
+  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${path}?${params}"
     title="${o.name}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }

@@ -176,6 +176,43 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
   .episodes { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .stage { padding: 0 8px 8px; }
 }
+/* 30분 타이머 */
+.timerbtn {
+  margin-left: auto; flex: none;
+  font-family: var(--ko); font-size: 18px; border: 0; border-radius: 999px;
+  background: var(--surface); color: var(--ink); padding: 10px 16px; cursor: pointer;
+  display: flex; align-items: center; gap: 7px; box-shadow: 0 3px 0 rgba(29,53,87,.12);
+  font-variant-numeric: tabular-nums;
+}
+.timerbtn[aria-pressed="true"] { background: var(--sky); color: #fff; }
+.timerbtn:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
+.timepill {
+  margin-left: auto; flex: none; color: #fff; background: rgba(42,157,244,.85);
+  font: 600 16px var(--display); padding: 6px 12px; border-radius: 999px;
+  display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums;
+}
+.timepill:not([hidden]) + .listbtn { margin-left: 0; }
+.timeup {
+  position: fixed; inset: 0; z-index: 50; background: #1d3557; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 24px; text-align: center;
+}
+.timeup .moon { width: 120px; height: 120px; }
+.timeup h2 { font-family: var(--ko); font-weight: 400; font-size: clamp(30px, 7vw, 48px); margin: 0; }
+.timeup p { margin: 0; font-size: 20px; color: #c9d8ea; }
+.hold {
+  position: relative; overflow: hidden; margin-top: 24px;
+  font-family: var(--ko); font-size: 17px; border: 2px solid rgba(255,255,255,.35); border-radius: 999px;
+  background: transparent; color: #c9d8ea; padding: 12px 22px; cursor: pointer;
+  -webkit-touch-callout: none; touch-action: none;
+}
+.hold::before {
+  content: ""; position: absolute; inset: 0; background: rgba(255,183,3,.45);
+  transform: scaleX(0); transform-origin: left; z-index: -1;
+}
+.hold.holding::before { transform: scaleX(1); transition: transform 3s linear; }
+@media (max-width: 560px) { .timerbtn { font-size: 16px; padding: 8px 13px; } }
+@media (max-height: 500px) { .timepill { font-size: 14px; padding: 4px 10px; } }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
 </style>
 </head>
@@ -186,6 +223,10 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
       <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#1d3557"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#fff"/></svg>
     </div>
     <h1>English TV</h1>
+    <button class="timerbtn" id="timerBtn" type="button" aria-pressed="false">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2.6" fill="none"/><path d="M12 9v4.5l3 2M9 2.5h6" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
+      <span id="timerText">30분 타이머</span>
+    </button>
   </header>
   <nav class="tabs" id="tabs" aria-label="주제"></nav>
   <main id="list"></main>
@@ -199,6 +240,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
       돌아가기
     </button>
     <div class="now" id="now"></div>
+    <span class="timepill" id="timePill" hidden><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2.6" fill="none"/><path d="M12 9v4.5l3 2M9 2.5h6" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span id="pillText"></span></span>
     <button class="listbtn" id="listBtn" type="button" aria-pressed="false">
       <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="14" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="3" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="14" y="13" width="7" height="7" rx="2" fill="currentColor"/></svg>
       다른 영상
@@ -206,6 +248,13 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
   </div>
   <div class="stage"><div class="frame" id="frame"></div></div>
   <div class="episodes" id="episodes" aria-label="다른 영상"></div>
+</div>
+
+<div class="timeup" id="timeUp" hidden>
+  <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#ffb703"/><circle cx="17" cy="5" r="1.2" fill="#fff"/><circle cx="20.5" cy="9" r=".8" fill="#fff"/></svg>
+  <h2>오늘 영상은 여기까지!</h2>
+  <p>30분 동안 잘 봤어요</p>
+  <button class="hold" id="holdBtn" type="button">엄마 아빠가 3초 꾹 누르면 닫혀요</button>
 </div>
 
 <script>
@@ -319,6 +368,7 @@ window.onYouTubeIframeAPIReady = () => {
 })();
 
 function openChannel(id) {
+  if (timeUp) return;
   const ch = CHANNELS.find(c => c.key === id);
   if (!ch) return;
   // 재생목록이 지정돼 있으면 그것을, 아니면 UULF(쇼츠·라이브를 뺀 일반 영상 전체)를 재생
@@ -458,6 +508,68 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+/* ---------- 30분 타이머 ----------
+   끝나는 시각을 저장해 두므로 새로고침하거나 앱을 닫았다 열어도 이어집니다.
+   시간이 다 되면 영상을 끄고 '여기까지' 화면을 띄우며, 이 화면은 3초 꾹 눌러야 닫힙니다. */
+const TIMER_MIN = 30;
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
+};
+let timerEnd = +store.get("timerEnd") || 0;
+let timeUp = store.get("timeUp") === "1";
+
+function fmt(ms) {
+  const t = Math.max(0, Math.ceil(ms / 1000));
+  return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+}
+function tick() {
+  const left = timerEnd ? timerEnd - Date.now() : 0;
+  if (timerEnd && left <= 0) {
+    timerEnd = 0; store.set("timerEnd", null);
+    timeUp = true; store.set("timeUp", "1");
+  }
+  const on = !!timerEnd;
+  $("#timerBtn").setAttribute("aria-pressed", String(on));
+  $("#timerText").textContent = on ? fmt(left) + " 남음" : "30분 타이머";
+  $("#timePill").hidden = !on;
+  if (on) $("#pillText").textContent = fmt(left);
+  if (timeUp && $("#timeUp").hidden) {
+    closePlayer();
+    $("#timeUp").hidden = false;
+  }
+}
+$("#timerBtn").addEventListener("click", () => {
+  if (timerEnd) {
+    if (!confirm("타이머를 끌까요?")) return;
+    timerEnd = 0;
+  } else {
+    timerEnd = Date.now() + TIMER_MIN * 60 * 1000;
+  }
+  store.set("timerEnd", timerEnd || null);
+  tick();
+});
+
+// 3초 꾹 누르기 (아이가 한 번 톡 눌러서는 닫히지 않게)
+let holdT = null;
+const hold = $("#holdBtn");
+function holdStart(e) {
+  e.preventDefault();
+  hold.classList.add("holding");
+  holdT = setTimeout(() => {
+    holdEnd();
+    timeUp = false; store.set("timeUp", null);
+    $("#timeUp").hidden = true;
+  }, 3000);
+}
+function holdEnd() { clearTimeout(holdT); holdT = null; hold.classList.remove("holding"); }
+hold.addEventListener("pointerdown", holdStart);
+["pointerup", "pointerleave", "pointercancel"].forEach(ev => hold.addEventListener(ev, holdEnd));
+hold.addEventListener("contextmenu", e => e.preventDefault());
+
+setInterval(tick, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
 function closePlayer() {
   pending = null; resumeOnReturn = false;
   if (player && player.destroy) { try { player.destroy(); } catch {} }
@@ -481,6 +593,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closePlayer(
 current = loadTab();
 if (current !== "all" && !CATEGORIES.some(c => c.key === current)) current = "all";
 renderTabs(); renderList();
+tick();
 </script>
 </body>
 </html>

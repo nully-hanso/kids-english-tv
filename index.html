@@ -99,7 +99,50 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
 .stage { flex: 1; min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 0 12px 12px; overflow: hidden; }
 .frame { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; flex: none; }
 .frame iframe { width: 100%; height: 100%; border: 0; border-radius: 14px; background: #000; }
-.hint { color: #9fb3c8; font-size: 15px; text-align: center; padding: 0 12px 10px; }
+.player { position: fixed; }
+.listbtn {
+  margin-left: auto; flex: none;
+  font-family: var(--ko); font-size: 18px; border: 0; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: #fff; padding: 9px 16px; cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+}
+.listbtn[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
+.listbtn:focus-visible, .ep:focus-visible { outline: 4px solid var(--sun); outline-offset: 2px; }
+.episodes {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 2px 12px 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; align-content: start;
+  grid-auto-rows: max-content;
+}
+.episodes:empty { display: none; }
+.ep {
+  position: relative; border: 0; padding: 0; cursor: pointer; background: #1f2b3d;
+  border-radius: 12px; overflow: hidden; display: block; width: 100%;
+}
+.ep img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.ep .no {
+  position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.65); color: #fff;
+  font: 600 13px var(--display); padding: 2px 8px; border-radius: 8px;
+}
+.ep[aria-current="true"] { box-shadow: inset 0 0 0 4px var(--sun); }
+.ep[aria-current="true"] img { opacity: .55; }
+.ep[aria-current="true"] .no { background: var(--sun); color: var(--ink); }
+
+/* 세로: 영상은 위, 목록은 아래에 항상 */
+@media (orientation: portrait) {
+  .player .stage { flex: none; }
+  .listbtn { display: none; }
+}
+/* 가로: 영상을 크게, 목록은 버튼으로 열고 닫기 */
+@media (orientation: landscape) {
+  .player .episodes {
+    position: absolute; left: 0; right: 0; bottom: 0; top: var(--bar-h, 60px);
+    background: rgba(11,19,32,.97); z-index: 2; padding-top: 8px;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+  .player:not(.show-list) .episodes { display: none; }
+}
 
 .foot { color: var(--muted); font-size: 14px; margin-top: 10px; text-align: center; }
 .lang { font-family: var(--ko); font-size: 13px; color: var(--muted); }
@@ -124,12 +167,13 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
   .name { font-size: 15px; }
   .back { font-size: 17px; padding: 8px 16px; }
   .now { font-size: 17px; }
+  .episodes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 }
 /* 휴대폰 가로: 영상을 최대한 크게 */
 @media (max-height: 500px) {
   .bar { padding: 6px 10px; }
-  .back { font-size: 16px; padding: 6px 14px; }
-  .hint { display: none; }
+  .back, .listbtn { font-size: 16px; padding: 6px 14px; }
+  .episodes { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .stage { padding: 0 8px 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
@@ -155,9 +199,13 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
       돌아가기
     </button>
     <div class="now" id="now"></div>
+    <button class="listbtn" id="listBtn" type="button" aria-pressed="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="14" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="3" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="14" y="13" width="7" height="7" rx="2" fill="currentColor"/></svg>
+      다른 영상
+    </button>
   </div>
   <div class="stage"><div class="frame" id="frame"></div></div>
-  <div class="hint">오른쪽 위 목록 버튼을 누르면 다른 영상을 고를 수 있어요</div>
+  <div class="episodes" id="episodes" aria-label="다른 영상"></div>
 </div>
 
 <script>
@@ -249,32 +297,121 @@ function renderList() {
   }).join("");
 }
 
+/* ---------- 플레이어 ----------
+   YouTube IFrame API로 재생하고, 재생목록의 영상 ID를 받아
+   페이지 안에 그림 목록을 직접 그립니다(작은 화면에서는 유튜브 목록 버튼이 숨겨지기 때문). */
+let player = null, apiReady = false, pending = null, shownIds = "";
+
+window.onYouTubeIframeAPIReady = () => {
+  apiReady = true;
+  if (pending) { const p = pending; pending = null; startPlayer(p); }
+};
+(function loadApi() {
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(s);
+})();
+
 function openChannel(id) {
   const ch = CHANNELS.find(c => c.key === id);
   if (!ch) return;
   // 재생목록이 지정돼 있으면 그것을, 아니면 UULF(쇼츠·라이브를 뺀 일반 영상 전체)를 재생
   const list = ch.list || ("UULF" + ch.id.slice(2));
   const english = !ch.lang || ch.lang.startsWith("English");
-  const params = new URLSearchParams({
-    list, rel: "0", playsinline: "1", autoplay: "1",
-    modestbranding: "1", iv_load_policy: "3",
-    hl: english ? "en" : "ko", cc_lang_pref: english ? "en" : "ko",
-  });
-  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/videoseries?${params}"
-    title="${ch.name}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  const opts = { list, lang: english ? "en" : "ko", name: ch.name };
   $("#now").textContent = ch.name;
+  $("#player").classList.remove("show-list");
+  $("#listBtn").setAttribute("aria-pressed", "false");
+  $("#episodes").innerHTML = ""; shownIds = "";
   $("#player").hidden = false;
   fitFrame();
+  if (apiReady) startPlayer(opts);
+  else {
+    pending = opts;
+    // API가 늦거나 막히면 목록 없이 기본 플레이어로라도 재생
+    setTimeout(() => { if (pending === opts) { pending = null; plainPlayer(opts); } }, 5000);
+  }
 }
 
-// stage 안에 들어가는 가장 큰 16:9 크기를 직접 계산 (iPhone Safari 대응)
+function playerVars(o) {
+  return { listType: "playlist", list: o.list, rel: 0, playsinline: 1, autoplay: 1,
+           modestbranding: 1, iv_load_policy: 3, hl: o.lang, cc_lang_pref: o.lang };
+}
+
+function startPlayer(o) {
+  if ($("#player").hidden) return;
+  $("#frame").innerHTML = '<div id="yt"></div>';
+  player = new YT.Player("yt", {
+    host: "https://www.youtube-nocookie.com",
+    width: "100%", height: "100%",
+    playerVars: playerVars(o),
+    events: {
+      onReady: () => { refreshList(); },
+      onStateChange: () => { refreshList(); },
+    },
+  });
+  // 재생목록 정보가 조금 늦게 올 때를 대비해 몇 번 다시 확인
+  let tries = 0;
+  const t = setInterval(() => { refreshList(); if (shownIds || ++tries > 10 || !player) clearInterval(t); }, 800);
+}
+
+function plainPlayer(o) {
+  if ($("#player").hidden) return;
+  const params = new URLSearchParams(Object.entries(playerVars(o)).filter(([k]) => k !== "listType"));
+  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/videoseries?${params}"
+    title="${o.name}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+
+function refreshList() {
+  if (!player || typeof player.getPlaylist !== "function") return;
+  const ids = player.getPlaylist();
+  if (!ids || !ids.length) return;
+  const box = $("#episodes");
+  if (ids.join() !== shownIds) {
+    shownIds = ids.join();
+    box.innerHTML = ids.map((v, i) => `
+      <button class="ep" type="button" data-i="${i}" aria-label="${i + 1}번 영상">
+        <img src="https://i.ytimg.com/vi/${v}/mqdefault.jpg" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <span class="no">${i + 1}</span>
+      </button>`).join("");
+    fitFrame();
+  }
+  const cur = player.getPlaylistIndex();
+  box.querySelectorAll(".ep").forEach(b => b.setAttribute("aria-current", String(+b.dataset.i === cur)));
+}
+
+$("#episodes").addEventListener("click", e => {
+  const b = e.target.closest(".ep"); if (!b || !player) return;
+  player.playVideoAt(+b.dataset.i);
+  setList(false);
+  if (matchMedia("(orientation: portrait)").matches) $("#player").scrollTop = 0;
+});
+
+function setList(open) {
+  $("#player").classList.toggle("show-list", open);
+  $("#listBtn").setAttribute("aria-pressed", String(open));
+}
+$("#listBtn").addEventListener("click", () => {
+  setList(!$("#player").classList.contains("show-list"));
+});
+
+// 영상 영역 안에 들어가는 가장 큰 16:9 크기를 직접 계산 (iPhone Safari 대응)
 function fitFrame() {
   if ($("#player").hidden) return;
-  const stage = document.querySelector(".stage");
+  const player_ = $("#player");
+  const bar = player_.querySelector(".bar");
+  player_.style.setProperty("--bar-h", bar.offsetHeight + "px");
+  const stage = player_.querySelector(".stage");
   const cs = getComputedStyle(stage);
   const w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  let h;
+  if (matchMedia("(orientation: portrait)").matches) {
+    // 세로: 폭에 맞추되, 아래 목록이 보이도록 높이는 화면의 절반까지만
+    h = Math.min(w * 9 / 16, player_.clientHeight * 0.5);
+  } else {
+    h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  }
   if (w <= 0 || h <= 0) return;
   const fw = Math.floor(Math.min(w, h * 16 / 9));
   const frame = $("#frame");
@@ -286,7 +423,12 @@ addEventListener("orientationchange", () => setTimeout(fitFrame, 300));
 if (window.visualViewport) visualViewport.addEventListener("resize", fitFrame);
 
 function closePlayer() {
+  pending = null;
+  if (player && player.destroy) { try { player.destroy(); } catch {} }
+  player = null; shownIds = "";
   $("#frame").innerHTML = "";
+  $("#episodes").innerHTML = "";
+  setList(false);
   $("#player").hidden = true;
 }
 

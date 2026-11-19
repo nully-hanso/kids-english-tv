@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="English TV">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>우리집 English TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap">
+<style>
+/* 레이아웃: 위에는 주제 탭, 아래는 큰 동그라미 채널 카드. 누르면 화면 전체 플레이어 */
+:root {
+  --bg: #eaf4fb;
+  --surface: #ffffff;
+  --ink: #1d3557;
+  --muted: #5a7190;
+  --sky: #2a9df4;
+  --sun: #ffb703;
+  --display: "Fredoka", "Jua", system-ui, sans-serif;
+  --ko: "Jua", "Fredoka", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--ko);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
+}
+.wrap {
+  max-width: 1100px; margin: 0 auto;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.logo {
+  width: 52px; height: 52px; border-radius: 16px; background: var(--sun);
+  display: grid; place-items: center; flex: none;
+  box-shadow: 0 4px 0 #e09e00;
+}
+.logo svg { width: 28px; height: 28px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 38px); margin: 0; letter-spacing: .3px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.tab {
+  font-family: var(--ko); font-size: 19px;
+  border: 0; border-radius: 999px; padding: 10px 18px;
+  background: var(--surface); color: var(--ink); cursor: pointer;
+  box-shadow: 0 3px 0 rgba(29,53,87,.12);
+}
+.tab[aria-pressed="true"] { background: var(--c, var(--sky)); color: #fff; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.tab:focus-visible, .card:focus-visible, .back:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
+
+.section { margin-bottom: 30px; }
+.section h2 {
+  font-family: var(--ko); font-weight: 400; font-size: 24px; margin: 0 0 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section h2::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--c); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+.card {
+  border: 0; background: var(--surface); border-radius: 26px; padding: 16px 12px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer;
+  box-shadow: 0 5px 0 rgba(29,53,87,.10);
+  transition: transform .12s ease;
+  color: var(--ink); font: inherit;
+}
+.card:active { transform: translateY(3px) scale(.98); }
+.avatar {
+  width: 100%; max-width: 120px; aspect-ratio: 1; border-radius: 50%;
+  object-fit: cover; background: #dde9f3;
+  border: 5px solid var(--c);
+}
+.name { font-family: var(--display); font-weight: 600; font-size: 17px; text-align: center; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
+
+/* 플레이어 */
+.player {
+  position: fixed; inset: 0; background: #0b1320; z-index: 20;
+  display: flex; flex-direction: column;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+.back {
+  font-family: var(--ko); font-size: 20px; border: 0; border-radius: 999px;
+  background: var(--sun); color: var(--ink); padding: 10px 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 0 #e09e00;
+}
+.now { color: #fff; font-family: var(--display); font-size: 20px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stage { flex: 1; display: grid; place-items: center; padding: 0 12px 12px; min-height: 0; }
+.frame { width: 100%; max-width: calc((100vh - 110px) * 16 / 9); aspect-ratio: 16 / 9; max-height: 100%; }
+.frame iframe { width: 100%; height: 100%; border: 0; border-radius: 14px; background: #000; }
+.hint { color: #9fb3c8; font-size: 15px; text-align: center; padding: 0 12px 10px; }
+
+.foot { color: var(--muted); font-size: 14px; margin-top: 10px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#1d3557"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#fff"/></svg>
+    </div>
+    <h1>English TV</h1>
+  </header>
+  <nav class="tabs" id="tabs" aria-label="주제"></nav>
+  <main id="list"></main>
+  <p class="foot">엄마 아빠가 고른 채널만 나와요</p>
+</div>
+
+<div class="player" id="player" hidden>
+  <div class="bar">
+    <button class="back" id="back" type="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      돌아가기
+    </button>
+    <div class="now" id="now"></div>
+  </div>
+  <div class="stage"><div class="frame" id="frame"></div></div>
+  <div class="hint">오른쪽 위 목록 버튼을 누르면 다른 영상을 고를 수 있어요</div>
+</div>
+
+<script>
+/* ============================================================
+   채널 관리: 여기만 고치면 됩니다.
+   - 채널을 빼려면 그 줄을 지우거나 앞에 // 를 붙이세요.
+   - 채널을 추가하려면 같은 모양으로 한 줄 넣으세요.
+     id는 채널 ID(UC로 시작)입니다.
+   ============================================================ */
+const CATEGORIES = [
+  { key: "song",    label: "동요",          color: "#ef476f" },
+  { key: "phonics", label: "파닉스·숫자",    color: "#8e44ad" },
+  { key: "vehicle", label: "탈것·기계",      color: "#f3722c" },
+  { key: "science", label: "과학·탐험",      color: "#06a77d" },
+  { key: "lego",    label: "레고",          color: "#e63946" },
+  { key: "story",   label: "일상 이야기",    color: "#2a9df4" },
+];
+
+const IMG = "https://yt3.googleusercontent.com/";
+const CHANNELS = [
+  // 동요
+  { cat: "song", name: "Super Simple Songs", id: "UCLsooMJoIpl_7ux2jvdPB-Q", img: "x7yHOvSWKX_olv_pgx1Ou4SsHI_eOg27sXy9jbNO15rHMG3y425LnmFIyoxDyvLA8Qi3k_0rWw" },
+  { cat: "song", name: "Pinkfong",           id: "UCcdwLMPsaU2ezNSJU1nFoBQ", img: "1k_R7xtChDwD1MMJOHf6tjoXdyYDwV7JjRSR9Em0qlz69oJO3QeseGowGcJvI9khogep4N65DEQ" },
+  { cat: "song", name: "Jack Hartmann",      id: "UCVcQH8A634mauPrGbWs7QlQ", img: "dBGALgiaMfeeHDUW5Vy5W8C8bSdre4ryyx8FMZ8XO_twhhC1GCxivReJS44Eto4rKqfQn9JutA" },
+  // 파닉스·숫자
+  { cat: "phonics", name: "Alphablocks",     id: "UC_qs3c0ehDvZkbiEbOj6Drg", img: "4hW2cvLDW8yX5v3O_PzzyfHhQ0MCv_URg_OFOdElQ0jJ-BmiS0zXMUwikr-D1WMkC2taQO-S" },
+  { cat: "phonics", name: "Numberblocks",    id: "UCPlwvN0w4qFSP1FllALB92w", img: "lhZzvbA1gptFuwFBPKJBsyCS7eksCbOWdX0iLNZeUygKGysu6veWmSGFVNJTGd9qfvYXoPTJoIw" },
+  // 탈것·기계
+  { cat: "vehicle", name: "Handyman Hal",    id: "UC8KyyhPfL4v2sZGbcGg7b7Q", img: "os-r8D3c2crOONshx0klpBAETlB9dLIANJEqm-AKMZ0Nz4rSgUeqZILdtZwKEZ6Wquk1Uta5gw" },
+  { cat: "vehicle", name: "Blippi",          id: "UC5PYHgAzJ1wLEidB58SK6Xw", img: "5RLphM956w5pfV843mKs401NNeshKiq70_KBwHdLVAhdTl323Q_qc1fxZcvyilx7pL_Rij3V" },
+  { cat: "vehicle", name: "Blaze and the Monster Machines", id: "UCmWZB57dUwFfj847-4y63JA", img: "ytc/AIdro_knRxLbMmf2yeHtIw9UGHp9CvzT80VWtQaBKKRkoK04br8" },
+  // 과학·탐험
+  { cat: "science", name: "Maddie Moate",    id: "UCQ0_JQL4wdQd-Xe5hC4PwTg", img: "MVa_Smg9PxfpYeJ10ZZRD3ctucMJXTf7BqQYw3RgPBfyvxK_aZiAg1rTRIihCYrDXHI6AJRM" },
+  { cat: "science", name: "TheDadLab",       id: "UCc_-hy0u9-oKlNdMKHBudcQ", img: "ytc/AIdro_kKKrC5qZARKGI9RERzcNOfgQiYdlwXF_sJgQV5njk7" },
+  { cat: "science", name: "SciShow Kids",    id: "UCRFIPG2u1DxKLNuE3y2SjHA", img: "9RKKCG2JPialTt7Aks6PPjLuETae_Yf-_Und4NERTGdn4tHV7xCr1JzJQc0-ir63DYcvK_cYTA" },
+  { cat: "science", name: "Octonauts",       id: "UCXLLQkbYE-G9jYrra7R4Qsw", img: "45UOB3Elk3cgr5-TeFn33Msq314WsYpOHVCh6GaxTDflu76S5F04jFgA26l1xRYhFL9wduLI3w" },
+  { cat: "science", name: "Wild Kratts",     id: "UCxEmDFo1yUbbxjEb9RjitVA", img: "p9M4GrXcdLpXy_6zMYvV5TiQ_iOIbZ6snX8FGhhy3yh0hSxOOwyJlpRVu2VHSZKchX4hI7wGaQ" },
+  // 레고
+  { cat: "lego", name: "Brick Science",      id: "UCpQB577lHFyWTyvrS73Ldlg", img: "m4vb2DtUm-T2yQp4WzHqD-9bqyMx145NEvyfb7NgarayJJ-6BWZAq7tsNHiyBSlKaDFZnA43jZQ" },
+  { cat: "lego", name: "Brickitect",         id: "UC-LJgOHir8UyxoboIe-cQZA", img: "ytc/AIdro_ktP-gMPGAt3-Ni9b35KsYp63odjYq1uVrMCcILTWwcng8" },
+  // 일상 이야기
+  { cat: "story", name: "Peppa Pig",         id: "UCAOtE1V7Ots4DjM8JLlrYgg", img: "13Y1jOLVSE09l52UWslwmQdEGEK2MJYE6VxGb_cgGOsZKJbBGUvCFt8ivnCEv4sOG_tNJQl4_2c" },
+  { cat: "story", name: "Bluey",             id: "UCVzLLZkDuFGAE2BGdBuBNBg", img: "6bBUQ32f2n9uU-PdmNrKZ3vh9bseOtTKApdriAaHvUw6DG4fDv5DQmLHDP_IWqeVkcZvIAgMmh4" },
+  { cat: "story", name: "Caillou",           id: "UC4yQCVlLhTmOqX5kUkAGr0g", img: "ytc/AIdro_k3_D-rX9Y-SRAnxmtHA0JZNlPtZeFJ6Rf6deYZFOjkpkg" },
+  { cat: "story", name: "Charlie and Lola",  id: "UCG-raE4Js-td8_muMlcveaQ", img: "NgVwnEQpLypKwLrSUJTx3LkR_5KU5Ayn6acmNRBBXTjq-6jNcrVBmU_mL5ewouBzTo0twvRrig" },
+];
+/* ============================================================ */
+
+const $ = (s) => document.querySelector(s);
+let current = "all";
+
+function loadTab() { try { return localStorage.getItem("tab") || "all"; } catch { return "all"; } }
+function saveTab(v) { try { localStorage.setItem("tab", v); } catch {} }
+
+function renderTabs() {
+  const all = [{ key: "all", label: "전부", color: "#1d3557" }, ...CATEGORIES];
+  $("#tabs").innerHTML = all.map(c =>
+    `<button class="tab" type="button" data-key="${c.key}" style="--c:${c.color}" aria-pressed="${c.key === current}">${c.label}</button>`
+  ).join("");
+}
+
+function renderList() {
+  const cats = current === "all" ? CATEGORIES : CATEGORIES.filter(c => c.key === current);
+  $("#list").innerHTML = cats.map(cat => {
+    const items = CHANNELS.filter(ch => ch.cat === cat.key);
+    if (!items.length) return "";
+    return `<section class="section" style="--c:${cat.color}">
+      <h2>${cat.label}</h2>
+      <div class="grid">${items.map(ch => `
+        <button class="card" type="button" data-id="${ch.id}" style="--c:${cat.color}">
+          <img class="avatar" src="${IMG}${ch.img}=s240-c-k-c0x00ffffff-no-rj" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <span class="name">${ch.name}</span>
+        </button>`).join("")}
+      </div></section>`;
+  }).join("");
+}
+
+function openChannel(id) {
+  const ch = CHANNELS.find(c => c.id === id);
+  if (!ch) return;
+  // UULF = 쇼츠·라이브를 뺀 일반 영상만 모은 재생목록
+  const uploads = "UULF" + ch.id.slice(2);
+  const params = new URLSearchParams({
+    list: uploads, rel: "0", playsinline: "1", autoplay: "1",
+    modestbranding: "1", iv_load_policy: "3", hl: "en", cc_lang_pref: "en",
+  });
+  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/videoseries?${params}"
+    title="${ch.name}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  $("#now").textContent = ch.name;
+  $("#player").hidden = false;
+}
+
+function closePlayer() {
+  $("#frame").innerHTML = "";
+  $("#player").hidden = true;
+}
+
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  current = b.dataset.key; saveTab(current); renderTabs(); renderList();
+});
+$("#list").addEventListener("click", e => {
+  const b = e.target.closest(".card"); if (b) openChannel(b.dataset.id);
+});
+$("#back").addEventListener("click", closePlayer);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePlayer(); });
+
+current = loadTab();
+if (current !== "all" && !CATEGORIES.some(c => c.key === current)) current = "all";
+renderTabs(); renderList();
+</script>
+</body>
+</html>

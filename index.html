@@ -222,6 +222,25 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
   .timerbtn { font-size: 15px; padding: 8px 10px; gap: 5px; }
 }
 @media (max-height: 500px) { .timepill { font-size: 14px; padding: 4px 10px; } }
+/* 끝까지 보기 잠금 */
+.lockmsg {
+  display: none; margin: 0 12px 10px; padding: 10px 14px; border-radius: 14px;
+  background: rgba(255,183,3,.16); color: #ffd166; font-size: 17px; text-align: center;
+}
+.player.locked .lockmsg { display: block; }
+.player.locked .episodes { opacity: .35; pointer-events: none; }
+.player.locked .listbtn { display: none; }
+.back .lk { display: none; }
+.player.locked .back .lk { display: inline; }
+.player.locked .back .arrow { display: none; }
+.back { position: relative; overflow: hidden; -webkit-touch-callout: none; }
+.back::after {
+  content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.55);
+  transform: scaleX(0); transform-origin: left; pointer-events: none;
+}
+.back.holding::after { transform: scaleX(1); transition: transform 3s linear; }
+@media (orientation: landscape) { .player.locked .lockmsg { margin-bottom: 6px; padding: 6px 12px; font-size: 15px; } }
+.foot a { color: var(--sky); }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
 </style>
 </head>
@@ -240,13 +259,15 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
   </header>
   <nav class="tabs" id="tabs" aria-label="주제"></nav>
   <main id="list"></main>
-  <p class="foot">엄마 아빠가 고른 채널만 나와요</p>
+  <p class="foot">엄마 아빠가 고른 채널만 나와요 ·
+    <a href="https://accounts.google.com/ServiceLogin?service=youtube&amp;continue=https%3A%2F%2Fwww.youtube.com%2F" target="_blank" rel="noopener">유튜브 로그인</a></p>
 </div>
 
 <div class="player" id="player" hidden>
   <div class="bar">
     <button class="back" id="back" type="button">
-      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="lk" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2.6" fill="none"/></svg>
       돌아가기
     </button>
     <div class="now" id="now"></div>
@@ -257,6 +278,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
     </button>
   </div>
   <div class="stage"><div class="frame" id="frame"></div></div>
+  <p class="lockmsg" id="lockMsg">이 영상을 끝까지 보면 다른 영상을 고를 수 있어요</p>
   <div class="episodes" id="episodes" aria-label="다른 영상"></div>
 </div>
 
@@ -410,7 +432,8 @@ function startPlayer(o) {
   if ($("#player").hidden) return;
   $("#frame").innerHTML = '<div id="yt"></div>';
   player = new YT.Player("yt", {
-    host: "https://www.youtube-nocookie.com",
+    // 로그인(유튜브 프리미엄)이 적용되려면 nocookie가 아닌 youtube.com 플레이어여야 함
+    host: "https://www.youtube.com",
     width: "100%", height: "100%",
     ...(o.videos ? { videoId: o.videos[0] } : {}),
     playerVars: playerVars(o),
@@ -418,6 +441,7 @@ function startPlayer(o) {
       onReady: () => { refreshList(); },
       onStateChange: e => {
         if (e.data === 2) pausedAt = Date.now();   // 2 = 일시정지
+        if (e.data === 0) setLock(false);          // 0 = 끝까지 봄 → 다른 영상 고르기 가능
         refreshList();
       },
     },
@@ -431,7 +455,7 @@ function plainPlayer(o) {
   if ($("#player").hidden) return;
   const params = new URLSearchParams(Object.entries(playerVars(o)).filter(([k]) => k !== "listType"));
   const path = o.videos ? o.videos[0] : "videoseries";
-  $("#frame").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${path}?${params}"
+  $("#frame").innerHTML = `<iframe src="https://www.youtube.com/embed/${path}?${params}"
     title="${o.name}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
     referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
@@ -460,6 +484,35 @@ $("#episodes").addEventListener("click", e => {
   setList(false);
   if (matchMedia("(orientation: portrait)").matches) $("#player").scrollTop = 0;
 });
+
+/* ---------- 끝까지 보기 ----------
+   영상 시작 후 1분 동안은 마음대로 바꿀 수 있고(맛보기),
+   1분이 지나면 그 영상이 끝날 때까지 다른 영상 고르기와 '돌아가기'가 잠깁니다.
+   부모님은 '돌아가기'를 3초 꾹 누르면 언제든 나갈 수 있어요. */
+const TRY_SEC = 60;
+let lockedVideo = "";
+function setLock(on) { $("#player").classList.toggle("locked", on); if (on) setList(false); }
+setInterval(() => {
+  if (!player || $("#player").hidden || typeof player.getCurrentTime !== "function") return;
+  let vid = "", t = 0, st = -1;
+  try { vid = player.getVideoData().video_id; t = player.getCurrentTime(); st = player.getPlayerState(); } catch { return; }
+  if (vid !== lockedVideo) { lockedVideo = vid; setLock(false); }   // 새 영상이 시작되면 다시 맛보기
+  if (st !== 0 && t >= TRY_SEC) setLock(true);
+}, 1000);
+
+// 잠겨 있을 때 '돌아가기'는 3초 꾹 눌러야 동작
+let backT = null;
+const backBtn = $("#back");
+backBtn.addEventListener("pointerdown", () => {
+  if (!$("#player").classList.contains("locked")) return;
+  backBtn.classList.add("holding");
+  backT = setTimeout(() => { backT = "done"; backBtn.classList.remove("holding"); closePlayer(); }, 3000);
+});
+["pointerup", "pointerleave", "pointercancel"].forEach(ev => backBtn.addEventListener(ev, () => {
+  if (backT && backT !== "done") clearTimeout(backT);
+  backBtn.classList.remove("holding");
+}));
+backBtn.addEventListener("contextmenu", e => e.preventDefault());
 
 function setList(open) {
   $("#player").classList.toggle("show-list", open);
@@ -588,6 +641,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 function closePlayer() {
   pending = null; resumeOnReturn = false;
+  setLock(false); lockedVideo = "";
   if (player && player.destroy) { try { player.destroy(); } catch {} }
   player = null; shownIds = "";
   $("#frame").innerHTML = "";
@@ -603,7 +657,14 @@ $("#tabs").addEventListener("click", e => {
 $("#list").addEventListener("click", e => {
   const b = e.target.closest(".card"); if (b) openChannel(b.dataset.id);
 });
-$("#back").addEventListener("click", closePlayer);
+$("#back").addEventListener("click", () => {
+  if (backT === "done") { backT = null; return; }          // 꾹 눌러서 이미 닫힘
+  if ($("#player").classList.contains("locked")) {         // 잠겨 있으면 안내만
+    const m = $("#lockMsg"); m.animate([{ transform: "scale(1.06)" }, { transform: "none" }], 300);
+    return;
+  }
+  closePlayer();
+});
 document.addEventListener("keydown", e => { if (e.key === "Escape") closePlayer(); });
 
 current = loadTab();

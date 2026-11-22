@@ -297,39 +297,48 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 
      id는 채널 ID(UC로 시작)입니다.
    ============================================================ */
 const CATEGORIES = [
-  { key: "song",    label: "동요",          color: "#ef476f" },
-  { key: "phonics", label: "파닉스·숫자",    color: "#8e44ad" },
-  { key: "vehicle", label: "탈것·기계",      color: "#f3722c" },
-  { key: "science", label: "과학·탐험",      color: "#06a77d" },
-  { key: "lego",    label: "레고",          color: "#e63946" },
-  { key: "story",   label: "일상 이야기",    color: "#2a9df4" },
-  { key: "talmud",  label: "탈무드",        color: "#b5838d" },
-  { key: "idiom",   label: "고사성어",       color: "#c9a227" },
+  { key: "words",   label: "말과 표현",     color: "#8e44ad" },
+  { key: "science", label: "과학과 기계",    color: "#f3722c" },
+  { key: "nature",  label: "자연과 세계",    color: "#06a77d" },
+  { key: "make",    label: "만들기",        color: "#e63946" },
+  { key: "move",    label: "노래와 몸놀이",  color: "#ef476f" },
+  { key: "story",   label: "이야기",        color: "#2a9df4" },
 ];
 
 const IMG = "https://yt3.googleusercontent.com/";
 const CHANNELS = [
-  // 동요
-  { cat: "song", name: "Super Simple Songs", id: "UCLsooMJoIpl_7ux2jvdPB-Q", img: "x7yHOvSWKX_olv_pgx1Ou4SsHI_eOg27sXy9jbNO15rHMG3y425LnmFIyoxDyvLA8Qi3k_0rWw" },
-  { cat: "song", name: "Pinkfong",           id: "UCcdwLMPsaU2ezNSJU1nFoBQ", img: "1k_R7xtChDwD1MMJOHf6tjoXdyYDwV7JjRSR9Em0qlz69oJO3QeseGowGcJvI9khogep4N65DEQ" },
-  { cat: "song", name: "Jack Hartmann",      id: "UCVcQH8A634mauPrGbWs7QlQ", img: "dBGALgiaMfeeHDUW5Vy5W8C8bSdre4ryyx8FMZ8XO_twhhC1GCxivReJS44Eto4rKqfQn9JutA" },
-  // 파닉스·숫자
-  { cat: "phonics", name: "Alphablocks",     id: "UC_qs3c0ehDvZkbiEbOj6Drg", img: "4hW2cvLDW8yX5v3O_PzzyfHhQ0MCv_URg_OFOdElQ0jJ-BmiS0zXMUwikr-D1WMkC2taQO-S" },
-  { cat: "phonics", name: "Numberblocks",    id: "UCPlwvN0w4qFSP1FllALB92w", img: "lhZzvbA1gptFuwFBPKJBsyCS7eksCbOWdX0iLNZeUygKGysu6veWmSGFVNJTGd9qfvYXoPTJoIw" },
-  // 탈것·기계
-  { cat: "vehicle", name: "Handyman Hal",    id: "UC8KyyhPfL4v2sZGbcGg7b7Q", img: "os-r8D3c2crOONshx0klpBAETlB9dLIANJEqm-AKMZ0Nz4rSgUeqZILdtZwKEZ6Wquk1Uta5gw" },
-  { cat: "vehicle", name: "Blippi",          id: "UC5PYHgAzJ1wLEidB58SK6Xw", img: "5RLphM956w5pfV843mKs401NNeshKiq70_KBwHdLVAhdTl323Q_qc1fxZcvyilx7pL_Rij3V" },
-  { cat: "vehicle", name: "Blaze and the Monster Machines", id: "UCmWZB57dUwFfj847-4y63JA", img: "ytc/AIdro_knRxLbMmf2yeHtIw9UGHp9CvzT80VWtQaBKKRkoK04br8" },
-  // 과학·탐험
-  { cat: "science", name: "Maddie Moate",    id: "UCQ0_JQL4wdQd-Xe5hC4PwTg", img: "MVa_Smg9PxfpYeJ10ZZRD3ctucMJXTf7BqQYw3RgPBfyvxK_aZiAg1rTRIihCYrDXHI6AJRM" },
-  { cat: "science", name: "TheDadLab",       id: "UCc_-hy0u9-oKlNdMKHBudcQ", img: "ytc/AIdro_kKKrC5qZARKGI9RERzcNOfgQiYdlwXF_sJgQV5njk7" },
+  // 말과 표현: 그림책 낭독, 단어 뜻·표현을 이야기로 배우기
+  { cat: "words", name: "Storyline Online",  id: "UCnBdzaRy-Ky9Vh54XJlFz1Q", img: "h11i0p5FnpjJ9RQAjNnrc_qi5Q8f3pbv2M685hyQjkobZZi3CenpaFVByZ6A-_d2ZZNUEnEh" },
+  { cat: "words", name: "Arthur",            id: "UCSPzXeCRf12qayHCAtuffzw", img: "r3YrwudcbU5JW63Gh37EkoRh2Dq_dnZD96Y15c2Jb9o_qic4XBzOwoQhBJbAofrabE21EBgl" },
+  { cat: "words", name: "WordGirl",          id: "UCAtaHJKIm3K9XnvHtdkVWyQ", img: "xIiLuyTI6F7BjAkokFnpzaVoEhJE2jGwhxsyv5nA0Hdqs5EVO5W-YzibYHR5RT9tJsF2SpxRWA" },
+  // 과학과 기계: 수학 탐정, 실험, 자동차·몬스터트럭, 공구
+  { cat: "science", name: "Odd Squad",       id: "UCNTJoDF--ZRdsls2HOKAwRw", img: "EZFWekT4NTJ4GehUtXOszk6hCdlHV8bJa9cEGTTnZhGfbomhF0oGHDkq5zb9hcxYRjPah5V7FS0" },
+  { cat: "science", name: "Dr. Binocs", id: "UCxlJ45KjG4XVcQ_hd8j227A", img: "ytc/AIdro_lTFIu2b6QlZMJHCQ2F3--ukEBs8fd_tEahtv38sm8WwME" },
   { cat: "science", name: "SciShow Kids",    id: "UCRFIPG2u1DxKLNuE3y2SjHA", img: "9RKKCG2JPialTt7Aks6PPjLuETae_Yf-_Und4NERTGdn4tHV7xCr1JzJQc0-ir63DYcvK_cYTA" },
-  { cat: "science", name: "Octonauts",       id: "UCXLLQkbYE-G9jYrra7R4Qsw", img: "45UOB3Elk3cgr5-TeFn33Msq314WsYpOHVCh6GaxTDflu76S5F04jFgA26l1xRYhFL9wduLI3w" },
-  { cat: "science", name: "Wild Kratts",     id: "UCxEmDFo1yUbbxjEb9RjitVA", img: "p9M4GrXcdLpXy_6zMYvV5TiQ_iOIbZ6snX8FGhhy3yh0hSxOOwyJlpRVu2VHSZKchX4hI7wGaQ" },
-  // 레고
-  { cat: "lego", name: "Brick Science",      id: "UCpQB577lHFyWTyvrS73Ldlg", img: "m4vb2DtUm-T2yQp4WzHqD-9bqyMx145NEvyfb7NgarayJJ-6BWZAq7tsNHiyBSlKaDFZnA43jZQ" },
-  { cat: "lego", name: "Brickitect",         id: "UC-LJgOHir8UyxoboIe-cQZA", img: "ytc/AIdro_ktP-gMPGAt3-Ni9b35KsYp63odjYq1uVrMCcILTWwcng8" },
-  // 일상 이야기
+  { cat: "science", name: "TheDadLab",       id: "UCc_-hy0u9-oKlNdMKHBudcQ", img: "ytc/AIdro_kKKrC5qZARKGI9RERzcNOfgQiYdlwXF_sJgQV5njk7" },
+  { cat: "science", name: "Hot Wheels",      id: "UClbYzBq_iCnk4Vg4HF1MhfQ", img: "ytc/AIdro_na56mT3DPV74DYPweyFjjbSYy5CinvkWbRoHt7w1pmKA8" },
+  { cat: "science", name: "Blaze and the Monster Machines", id: "UCmWZB57dUwFfj847-4y63JA", img: "ytc/AIdro_knRxLbMmf2yeHtIw9UGHp9CvzT80VWtQaBKKRkoK04br8" },
+  { cat: "science", name: "Handyman Hal",    id: "UC8KyyhPfL4v2sZGbcGg7b7Q", img: "os-r8D3c2crOONshx0klpBAETlB9dLIANJEqm-AKMZ0Nz4rSgUeqZILdtZwKEZ6Wquk1Uta5gw" },
+  { cat: "science", name: "Blippi",          id: "UC5PYHgAzJ1wLEidB58SK6Xw", img: "5RLphM956w5pfV843mKs401NNeshKiq70_KBwHdLVAhdTl323Q_qc1fxZcvyilx7pL_Rij3V" },
+  // 자연과 세계: 동물, 바다, 지구
+  { cat: "nature", name: "Nat Geo Kids",     id: "UCXVCgDuD_QCkI7gTKU7-tpg", img: "GsBWcfJJbCKMQ-ndyaeLPqIwfqvU2dughQEl0eGRP8MfvML-HIl5HK_vamdjOWzbvMSLdLINGA" },
+  { cat: "nature", name: "Wild Kratts",      id: "UCxEmDFo1yUbbxjEb9RjitVA", img: "p9M4GrXcdLpXy_6zMYvV5TiQ_iOIbZ6snX8FGhhy3yh0hSxOOwyJlpRVu2VHSZKchX4hI7wGaQ" },
+  { cat: "nature", name: "Octonauts",        id: "UCXLLQkbYE-G9jYrra7R4Qsw", img: "45UOB3Elk3cgr5-TeFn33Msq314WsYpOHVCh6GaxTDflu76S5F04jFgA26l1xRYhFL9wduLI3w" },
+  { cat: "nature", name: "Puffin Rock",      id: "UCBx2mmZhRBkPC2MK4bqcSHQ", img: "ePxZdelGH9UpfOgxN9h2lpYEiceoMcOGVggH1xbr4WvTFiuu3WSTPH5g32IMQCZD2vUcOHwQow" },
+  { cat: "nature", name: "Maddie Moate",     id: "UCQ0_JQL4wdQd-Xe5hC4PwTg", img: "MVa_Smg9PxfpYeJ10ZZRD3ctucMJXTf7BqQYw3RgPBfyvxK_aZiAg1rTRIihCYrDXHI6AJRM" },
+  // 만들기: 레고, 그림, 만들기
+  { cat: "make", name: "JANGBRiCKS",         id: "UCH09uL3dLqsVsOh0XmapzLQ", img: "awc5yhWXGI3voaVfkCnZXzJJDU3rEhGHiWFVBkxJyA3XLFOEZ3uFfRmwxtLgXVsjBTrVPbMI" },
+  { cat: "make", name: "Brick Experiment Channel", id: "UClsFdM0HzTdF1JYoraQ0aUw", img: "ytc/AIdro_m8-EAIC1BpP1XGw_bY5ECY9aO4x9jikMRjJH-aSJQp0-w" },
+  { cat: "make", name: "Brick Science",      id: "UCpQB577lHFyWTyvrS73Ldlg", img: "m4vb2DtUm-T2yQp4WzHqD-9bqyMx145NEvyfb7NgarayJJ-6BWZAq7tsNHiyBSlKaDFZnA43jZQ" },
+  { cat: "make", name: "Brickitect",         id: "UC-LJgOHir8UyxoboIe-cQZA", img: "ytc/AIdro_ktP-gMPGAt3-Ni9b35KsYp63odjYq1uVrMCcILTWwcng8" },
+  { cat: "make", name: "Art for Kids Hub",   id: "UC5XMF3Inoi8R9nSI8ChOsdQ", img: "2v2xIGZEuGhqBC5wVyqgal0UMtyClFzVVOw7brPTSPtR_Sii_k1BehSxI-e5X_FiKu7nkF36IR4" },
+  { cat: "make", name: "Mister Maker",       id: "UC3hGM2kxOs8vRYCcvfH6vuw", img: "2O1KuYvQt1WGN-PS6JFo4DmsjwXYswtR0lnWjsDOZl9v00OshAN_B8PsIDN6tZuIfTdS7LAY" },
+  // 노래와 몸놀이
+  { cat: "move", name: "Super Simple Songs", id: "UCLsooMJoIpl_7ux2jvdPB-Q", img: "x7yHOvSWKX_olv_pgx1Ou4SsHI_eOg27sXy9jbNO15rHMG3y425LnmFIyoxDyvLA8Qi3k_0rWw" },
+  { cat: "move", name: "Jack Hartmann",      id: "UCVcQH8A634mauPrGbWs7QlQ", img: "dBGALgiaMfeeHDUW5Vy5W8C8bSdre4ryyx8FMZ8XO_twhhC1GCxivReJS44Eto4rKqfQn9JutA" },
+  { cat: "move", name: "Cosmic Kids Yoga",   id: "UC5uIZ2KOZZeQDQo_Gsi_qbQ", img: "Yc9p76OfTXkdYN5f0iGJqpfmgTZxZkmwvwmL6S7s63QA8UTuBFyBfjL6xYpsX-XdGiKqxfGWkQ" },
+  { cat: "move", name: "GoNoodle",           id: "UC2YBT7HYqCbbvzu3kKZ3wnw", img: "ytc/AIdro_lpPsraLlE6yw-vcFVQ7b64fIW-0jEkKgzL5eHc3Xv2zVk" },
+  // 이야기: 영어 만화, 탈무드·고사성어(한국어)
   { cat: "story", name: "Peppa Pig",         id: "UCAOtE1V7Ots4DjM8JLlrYgg", img: "13Y1jOLVSE09l52UWslwmQdEGEK2MJYE6VxGb_cgGOsZKJbBGUvCFt8ivnCEv4sOG_tNJQl4_2c" },
   { cat: "story", name: "Bluey",             id: "UCVzLLZkDuFGAE2BGdBuBNBg", img: "6bBUQ32f2n9uU-PdmNrKZ3vh9bseOtTKApdriAaHvUw6DG4fDv5DQmLHDP_IWqeVkcZvIAgMmh4" },
   { cat: "story", name: "Caillou",           id: "UC4yQCVlLhTmOqX5kUkAGr0g", img: "ytc/AIdro_k3_D-rX9Y-SRAnxmtHA0JZNlPtZeFJ6Rf6deYZFOjkpkg" },
@@ -338,14 +347,14 @@ const CHANNELS = [
   /* 아래는 채널 전체가 아니라 '재생목록' 하나만 보여 줍니다.
      list = 재생목록 ID(PL로 시작), video = 썸네일로 쓸 영상 ID */
   // 탈무드 (한국어)
-  { cat: "talmud", name: "동화로 듣는 탈무드", lang: "한국어 · 책보세",   list: "PLbg_P_ae3xhVjusc70u0RJ93wDrG8bwog", video: "oYGohhQl1WQ" },
-  { cat: "talmud", name: "단비동화 탈무드",   lang: "한국어 · 단비Story", list: "PLkeAC1CbGV-u3M-z0iiFXvolP6S2HM1Gv", video: "TKquci0i0_I" },
+  { cat: "story", name: "동화로 듣는 탈무드", lang: "한국어 · 책보세",   list: "PLbg_P_ae3xhVjusc70u0RJ93wDrG8bwog", video: "oYGohhQl1WQ" },
+  { cat: "story", name: "단비동화 탈무드",   lang: "한국어 · 단비Story", list: "PLkeAC1CbGV-u3M-z0iiFXvolP6S2HM1Gv", video: "TKquci0i0_I" },
   // 재생목록이 없는 채널: 탈무드 연속듣기 1~4편(광고 없음)을 영상 ID로 묶어서 재생
-  { cat: "talmud", name: "혜니동화나라 탈무드", lang: "한국어 · 연속듣기", videos: ["akP2V-453rQ", "jbIrVkKbMok", "O-LLKcgrdkQ", "nifOZPJ3fA8"] },
+  { cat: "story", name: "혜니동화나라 탈무드", lang: "한국어 · 연속듣기", videos: ["akP2V-453rQ", "jbIrVkKbMok", "O-LLKcgrdkQ", "nifOZPJ3fA8"] },
   // 고사성어
-  { cat: "idiom", name: "헉깨비 고사성어",     lang: "한국어 · 애니메이션", list: "PLcNnMnG-Hsia5Ip-dwcyefXZCYErjD97p", video: "wqK-rR8O5UM" },
-  { cat: "idiom", name: "밝은한자 고사성어",   lang: "한국어",            list: "PLzgLTFwcfJNkWMAcotiNDGwXOTNq9T96F", video: "TyRKcQSZn58" },
-  { cat: "idiom", name: "The Magic Four",    lang: "English · 중국 고사성어", list: "PLnez17UO0xpChScxPhvH8XfrVbatH9fyv", video: "iaPBAKmi4ns" },
+  { cat: "story", name: "헉깨비 고사성어",     lang: "한국어 · 애니메이션", list: "PLcNnMnG-Hsia5Ip-dwcyefXZCYErjD97p", video: "wqK-rR8O5UM" },
+  { cat: "story", name: "밝은한자 고사성어",   lang: "한국어",            list: "PLzgLTFwcfJNkWMAcotiNDGwXOTNq9T96F", video: "TyRKcQSZn58" },
+  { cat: "story", name: "The Magic Four",    lang: "English · 중국 고사성어", list: "PLnez17UO0xpChScxPhvH8XfrVbatH9fyv", video: "iaPBAKmi4ns" },
 ];
 CHANNELS.forEach(ch => {
   if (ch.videos) ch.video = ch.videos[0];

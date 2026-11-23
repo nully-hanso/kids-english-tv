@@ -129,9 +129,20 @@ def main():
         print(f"{src['ch']}: {len(got)} (페이지 {len(items)}개)", file=sys.stderr)
         time.sleep(0.5)
 
+    # 아침 방송 시리즈: 재생목록을 순서 그대로(2분 넘는 것만) 저장
+    page = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+    sblock = page[page.index("const SERIES = {"):page.index("/* SERIES END */")]
+    series = {}
+    for lid in re.findall(r'"(PL[\w-]+)"', sblock):
+        eps = [{"id": i, "title": t, "sec": s} for i, t, s in playlist(lid) if s >= 120]
+        if not eps and os.path.exists(path):
+            eps = json.load(open(path, encoding="utf-8")).get("series", {}).get(lid, [])
+        series[lid] = eps
+        print(f"시리즈 {lid}: {len(eps)}화", file=sys.stderr)
+
     if len(videos) < 60:
         sys.exit(f"영상이 너무 적어서({len(videos)}개) pool.json을 바꾸지 않았어요")
-    json.dump({"updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "videos": videos},
+    json.dump({"updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "videos": videos, "series": series},
               open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
     print(f"{len(videos)}개 저장 (읽기 실패 {failed}곳)", file=sys.stderr)
 

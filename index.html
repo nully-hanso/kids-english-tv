@@ -133,6 +133,19 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 .ticket.holding::after { content: ""; position: absolute; inset: 0; background: rgba(242,84,91,.25); transform-origin: left; animation: fill 3s linear forwards; }
 @keyframes fill { from { transform: scaleX(0); } }
 
+.doors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.door {
+  border: 0; border-radius: 20px; padding: 18px 10px 16px; cursor: pointer; color: #fff;
+  background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 2px rgba(255,255,255,.14);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform .12s ease;
+}
+.door:active { transform: scale(.97); }
+.door .dt { font-size: 21px; }
+.door .dm { font-family: var(--display); font-weight: 700; font-size: 34px; color: var(--bulb); line-height: 1.15; }
+.door .ds { font-size: 14px; color: var(--dim); text-align: center; line-height: 1.3; min-height: 2.6em; margin-top: 4px; }
+/* 타이머 전에는 막이 반쯤 닫혀 있다가, 누르면 열려요 */
+.theater::before, .theater::after { transition: width .9s cubic-bezier(.5,0,.2,1); }
+.home.idle .theater::before, .home.idle .theater::after { width: 23%; }
 .cta {
   margin: 28px auto 0; display: block; border: 0; border-radius: 999px; cursor: pointer;
   background: var(--bulb); color: var(--ink); font-family: var(--ko); font-size: 21px; padding: 15px 30px;
@@ -224,7 +237,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 .hold.holding::before { transform: scaleX(1); transition: transform 3s linear; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticket, .ticket.just .stamp, .cheer .big, .tray.shake, .ticket.holding::after { transition: none; animation: none; }
+  .ticket, .ticket.just .stamp, .cheer .big, .tray.shake, .ticket.holding::after, .theater::before, .theater::after, .door { transition: none; animation: none; }
 }
 </style>
 </head>
@@ -233,9 +246,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 <div class="home" id="home">
   <div class="top">
     <span class="brand">English TV</span>
-    <div class="timers" id="timers">
-      <button class="timerbtn" type="button" data-min="15" aria-label="15분 타이머 시작">15분</button>
-      <button class="timerbtn" type="button" data-min="30" aria-label="30분 타이머 시작">30분</button>
+    <div class="timers">
       <button class="timerbtn" id="timerRun" type="button" aria-pressed="true" hidden><span id="timerText"></span></button>
     </div>
   </div>
@@ -243,9 +254,14 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   <main class="center">
     <div class="theater">
       <div class="valance" aria-hidden="true"></div>
-      <div class="screen"><h1 class="motto">고른 영상은<br>끝까지 봐요</h1></div>
+      <div class="screen"><h1 class="motto" id="motto">고른 영상은<br>끝까지 봐요</h1></div>
     </div>
     <p class="sub" id="sub"></p>
+    <!-- 타이머를 눌러야 시작: 아침 방송(15분, 편성표대로) / 극장(30분, 티켓 3장) -->
+    <div class="doors" id="doors">
+      <button class="door" id="goMorning" type="button"><span class="dt">아침 방송</span><span class="dm">15분</span><span class="ds" id="morningInfo"></span></button>
+      <button class="door" id="goTheater" type="button"><span class="dt">극장</span><span class="dm">30분</span><span class="ds" id="theaterInfo"></span></button>
+    </div>
     <div class="tickets" id="tickets"></div>
     <button class="cta" id="cta" type="button" hidden></button>
   </main>
@@ -328,6 +344,8 @@ const CHANNELS = [
   { cat: "science", name: "Odd Squad",       id: "UCNTJoDF--ZRdsls2HOKAwRw", img: "EZFWekT4NTJ4GehUtXOszk6hCdlHV8bJa9cEGTTnZhGfbomhF0oGHDkq5zb9hcxYRjPah5V7FS0" },
   { cat: "science", name: "Numberock",       id: "UCt9SZgFExNwWTH5T_JnyF-A", img: "l3A_J_7z0uGBRLtCW9vdkzI1MrQM3jCIlNm0yI9NzTK8oTuoUlsnvJXewD2A5qejocOVVdKAsA" },
   { cat: "science", name: "Scratch Garden",  id: "UC8NFs-VWUsyuq4zaYVVMgCQ", img: "ytc/AIdro_kupcu37YBC-tZ4u6E75DlaBZqvmxJz3kSIRDgnAgwarBg" },
+  // 일상의 기술: 문, 자물쇠, 에스컬레이터처럼 늘 보는 것들이 어떻게 움직이는지(3D 그림)
+  { cat: "science", name: "Jared Owen",      id: "UCbsfyGlrjrKQC0gbzK0-EiA", img: "ytc/AIdro_lnka0eFfoMdjhx8et8o7xqHGPma7jNXZXHBosNugHX5zHm" },
   { cat: "science", name: "Dr. Binocs",      id: "UCxlJ45KjG4XVcQ_hd8j227A", img: "ytc/AIdro_lTFIu2b6QlZMJHCQ2F3--ukEBs8fd_tEahtv38sm8WwME" },
   { cat: "science", name: "SciShow Kids",    id: "UCRFIPG2u1DxKLNuE3y2SjHA", img: "9RKKCG2JPialTt7Aks6PPjLuETae_Yf-_Und4NERTGdn4tHV7xCr1JzJQc0-ir63DYcvK_cYTA" },
   { cat: "science", name: "TheDadLab",       id: "UCc_-hy0u9-oKlNdMKHBudcQ", img: "ytc/AIdro_kKKrC5qZARKGI9RERzcNOfgQiYdlwXF_sJgQV5njk7" },
@@ -368,6 +386,23 @@ const CHANNELS = [
   { cat: "arts", name: "Cosmic Kids Yoga",   id: "UC5uIZ2KOZZeQDQo_Gsi_qbQ", img: "Yc9p76OfTXkdYN5f0iGJqpfmgTZxZkmwvwmL6S7s63QA8UTuBFyBfjL6xYpsX-XdGiKqxfGWkQ" },
 ];
 CHANNELS.forEach(ch => { ch.key = ch.list || ch.id || ch.videos.join(","); });
+
+/* 아침 방송 편성표 (요일: 0=일, 1=월 … 6=토)
+   lists = 순서대로 이어 볼 재생목록들, mix = 순서 없이 번갈아 볼 채널들 */
+const SERIES = {
+  A: { label: "이야기", days: [1, 3, 5], name: "Charlie and Lola", lang: "en",
+       lists: ["PLXiSgDwSRPokG4BfaAtLneCYC3qNchRjM"] },
+  B: { label: "레고", days: [2, 4], name: "레고 시간", lang: "en",
+       mix: ["UClsFdM0HzTdF1JYoraQ0aUw", "UCpQB577lHFyWTyvrS73Ldlg", "UC-LJgOHir8UyxoboIe-cQZA"] },
+  C: { label: "역사", days: [0, 6], name: "지니스쿨 한국사", lang: "ko",
+       lists: ["PL9963YeJsUgAM8gikh9PNPXDdEBKuEyCn",   // 선사·청동기·철기
+               "PL9963YeJsUgDuiy6AIEco3LM0cHGpoEXJ",   // 삼국
+               "PL9963YeJsUgBX5XPxMt4px4KfSyftq0Ui",   // 남북국
+               "PL9963YeJsUgA6TThkxrH_ZH59LpyqHbTV",   // 고려
+               "PL9963YeJsUgDDsD8h03NdygEp7Arkh_b6",   // 조선
+               "PL9963YeJsUgD_VrhCgmb8Tmcb3XtOlWof"] },// 근현대
+};
+/* SERIES END */
 /* ============================================================ */
 
 const $ = s => document.querySelector(s);
@@ -388,17 +423,73 @@ let basket = store.get("basket", { items: [], locked: false });
 let prog = store.get("prog", {});
 let history = store.get("history", []);
 const saveBasket = () => store.set("basket", basket);
-let POOL = [];
+let POOL = [], SERIES_EPS = {};
 
 fetch("pool.json", { cache: "no-cache" }).then(r => r.json())
-  .then(d => { POOL = d.videos || []; if (!$("#picker").hidden) renderPicker(); })
+  .then(d => { POOL = d.videos || []; SERIES_EPS = d.series || {}; renderHome(); if (!$("#picker").hidden) renderPicker(); })
   .catch(() => {});
+
+/* ---------- 아침 방송 ----------
+   오늘 요일의 시리즈를 이어서 틀어요. 한 화가 끝나면 다음 화, 15분이 되면 멈추고 다음 방송에 그 자리부터. */
+let sprog = store.get("sprog", {});   // { A: { i: 몇 번째 화, pos }, B: { seen: [본 영상], cur, pos } }
+const todayKey = () => { const d = new Date().getDay(); return Object.keys(SERIES).find(k => SERIES[k].days.includes(d)) || "A"; };
+function episodes(k) {
+  const s = SERIES[k];
+  if (s.lists) { const seen = new Set(); return s.lists.flatMap(l => SERIES_EPS[l] || []).filter(e => !seen.has(e.id) && seen.add(e.id)); }
+  const per = s.mix.map(key => POOL.filter(v => v.key === key)), out = [];
+  for (let i = 0; i < 30; i++) per.forEach(a => a[i] && out.push(a[i]));   // 채널을 번갈아
+  return out;
+}
+function nextEp(k) {
+  const eps = episodes(k), p = sprog[k] || {};
+  if (!eps.length) return null;
+  if (SERIES[k].lists) { const i = (p.i || 0) % eps.length; return { ep: eps[i], no: i + 1 }; }
+  const seen = new Set(p.seen || []);
+  return { ep: eps.find(e => e.id === p.cur) || eps.find(e => !seen.has(e.id)) || eps[0] };
+}
+function advanceEp(k) {
+  const p = sprog[k] || {};
+  if (SERIES[k].lists) sprog[k] = { i: (p.i || 0) + 1, pos: 0 };
+  else sprog[k] = { seen: [...(p.seen || []), p.cur].filter(Boolean).slice(-300), cur: null, pos: 0 };
+  store.set("sprog", sprog);
+}
+function epLabel(k, n) { const s = SERIES[k]; return `${s.label}: ${s.name}${n && n.no ? ` ${n.no}화` : ""}`; }
+function playMorning() {
+  if (timeUp || mode !== "morning" || !timerEnd) return;
+  const k = todayKey(), n = nextEp(k);
+  if (!n) { alert("방송을 불러오는 중이에요. 잠시 뒤에 다시 눌러 주세요."); return; }
+  if (!SERIES[k].lists) { sprog[k] = { ...(sprog[k] || {}), cur: n.ep.id }; store.set("sprog", sprog); }
+  playVideo({ ...n.ep, series: k, no: n.no });
+}
+function onEpisodeEnd() {
+  const k = cur.series; advanceEp(k);
+  const n = nextEp(k); if (!n) return closePlayer();
+  if (!SERIES[k].lists) { sprog[k].cur = n.ep.id; store.set("sprog", sprog); }
+  cur = { ...n.ep, series: k, no: n.no }; lastT = 0;
+  $("#now").textContent = cur.title;
+  try { player.loadVideoById(cur.id, 0); } catch {}
+}
 
 /* ---------- 첫 화면 ---------- */
 // 다 봤거나(done) 그만뒀으면(quit) 그 티켓은 쓴 것
 const isDone = v => !!(v && prog[v.id] && (prog[v.id].done || prog[v.id].quit));
 const isQuit = v => !!(v && prog[v.id] && prog[v.id].quit);
 function renderHome(justId) {
+  const m = timerEnd ? mode : null;
+  $("#home").classList.toggle("idle", !m);
+  $("#doors").hidden = !!m;
+  $("#tickets").hidden = m !== "theater";
+  if (m !== "theater") {
+    const k = todayKey();
+    $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "고른 영상은<br>끝까지 봐요";
+    $("#morningInfo").textContent = epLabel(k, nextEp(k));
+    const left = basket.items.filter(v => !isDone(v)).length;
+    $("#theaterInfo").textContent = basket.locked && left ? `티켓 ${left}장 남았어요` : "영상 3개 골라 보기";
+    $("#sub").textContent = m === "morning" ? epLabel(k, nextEp(k)) : "어떤 시간으로 시작할까요?";
+    $("#cta").hidden = m !== "morning"; $("#cta").textContent = "방송 이어 보기";
+    return;
+  }
+  $("#motto").innerHTML = "고른 영상은<br>끝까지 봐요";
   const items = basket.items, doneN = items.filter(isDone).length;
   $("#tickets").innerHTML = [0, 1, 2].map(i => {
     const v = items[i];
@@ -429,7 +520,13 @@ function renderHome(justId) {
   }
 }
 
+$("#goMorning").addEventListener("click", () => { startTimer(15, "morning"); playMorning(); });
+$("#goTheater").addEventListener("click", () => {
+  startTimer(30, "theater");
+  if (!basket.locked) openPicker();
+});
 $("#cta").addEventListener("click", () => {
+  if (mode === "morning") return playMorning();
   if (basket.locked && basket.items.every(isDone)) {
     basket.items.forEach(v => delete prog[v.id]); store.set("prog", prog);
     basket = { items: [], locked: false }; saveBasket();
@@ -465,7 +562,7 @@ $("#tickets").addEventListener("click", e => {
 
 /* ---------- 고르는 화면 ---------- */
 let ptab = store.get("ptab", "words");
-function openPicker() { if (timeUp) return; $("#picker").hidden = false; renderPicker(); }
+function openPicker() { if (timeUp || mode !== "theater" || !timerEnd) return; $("#picker").hidden = false; renderPicker(); }
 function closePicker() { $("#picker").hidden = true; renderHome(); }
 $("#pClose").addEventListener("click", closePicker);
 $("#pOk").addEventListener("click", () => {
@@ -566,8 +663,11 @@ function playVideo(v) {
     setTimeout(() => { if (pending === v) { pending = null; plainPlayer(v); } }, 5000);
   }
 }
-function startAt(v) { const p = prog[v.id]; return p && p.pos > 5 && p.pos < v.sec - 10 ? Math.floor(p.pos) : 0; }
-function lang(v) { const ch = CHANNELS.find(c => c.key === v.key); return ch && ch.lang ? "ko" : "en"; }
+function startAt(v) { const p = v.series ? sprog[v.series] : prog[v.id]; return p && p.pos > 5 && p.pos < v.sec - 10 ? Math.floor(p.pos) : 0; }
+function lang(v) {
+  if (v.series) return SERIES[v.series].lang || "en";
+  const ch = CHANNELS.find(c => c.key === v.key); return ch && ch.lang ? "ko" : "en";
+}
 function startPlayer(v) {
   if ($("#player").hidden) return;
   $("#frame").innerHTML = '<div id="yt"></div>';
@@ -578,7 +678,7 @@ function startPlayer(v) {
     events: {
       onStateChange: e => {
         if (e.data === 2) pausedAt = Date.now();   // 2 = 일시정지
-        if (e.data === 0) finish();                // 0 = 끝
+        if (e.data === 0) { if (cur && cur.series) onEpisodeEnd(); else finish(); }   // 0 = 끝
       },
     },
   });
@@ -593,7 +693,11 @@ setInterval(() => {
   if (!player || !cur || $("#player").hidden || typeof player.getCurrentTime !== "function") return;
   let t = 0, st = -1, vid = "";
   try { t = player.getCurrentTime(); st = player.getPlayerState(); vid = player.getVideoData().video_id; } catch { return; }
-  if (vid && vid !== cur.id) { try { player.loadVideoById(cur.id, (prog[cur.id] || {}).pos || 0); } catch {} return; }
+  if (vid && vid !== cur.id) { try { player.loadVideoById(cur.id, startAt(cur)); } catch {} return; }
+  if (cur.series) {   // 아침 방송: 위치만 기억(도장·그만두기 없음)
+    if (t > 0) { sprog[cur.series] = { ...(sprog[cur.series] || {}), pos: t }; store.set("sprog", sprog); }
+    $("#quitBtn").hidden = true; return;
+  }
   const p = prog[cur.id] || (prog[cur.id] = { pos: 0, seen: 0 });
   if (st === 1 && t > lastT && t - lastT < 2.5) p.seen += t - lastT;   // 앞으로 건너뛴 시간은 안 셈
   lastT = t;
@@ -694,11 +798,19 @@ document.addEventListener("visibilitychange", () => {
 let timerEnd = +store.get("timerEnd", 0) || 0;
 let timeUp = String(store.get("timeUp", "0")) === "1";
 let timerMin = +store.get("timerMin", 30) || 30;
+let mode = store.get("mode", null);   // "morning" | "theater"
+let wasOn = !!timerEnd;
+function startTimer(min, m) {
+  if (timeUp) return;
+  timerMin = min; mode = m; timerEnd = Date.now() + min * 60000;
+  store.set("timerMin", min); store.set("mode", m); store.set("timerEnd", timerEnd);
+  tick();
+}
 function tick() {
   const left = timerEnd ? timerEnd - Date.now() : 0;
   if (timerEnd && left <= 0) { timerEnd = 0; store.set("timerEnd", null); timeUp = true; store.set("timeUp", "1"); }
   const on = !!timerEnd;
-  document.querySelectorAll("#timers [data-min]").forEach(b => b.hidden = on);
+  if (on !== wasOn) { wasOn = on; if (!on) { mode = null; store.set("mode", null); } renderHome(); }
   $("#timerRun").hidden = !on;
   if (on) $("#timerText").textContent = mmss(Math.ceil(left / 1000)) + " 남음";
   $("#timePill").hidden = !on;
@@ -709,11 +821,10 @@ function tick() {
     $("#timeUp").hidden = false;
   }
 }
-$("#timers").addEventListener("click", e => {
-  const b = e.target.closest(".timerbtn"); if (!b) return;
-  if (b.id === "timerRun") { if (!confirm("타이머를 끌까요?")) return; timerEnd = 0; }
-  else { timerMin = +b.dataset.min; timerEnd = Date.now() + timerMin * 60000; store.set("timerMin", timerMin); }
-  store.set("timerEnd", timerEnd || null); tick();
+$("#timerRun").addEventListener("click", () => {
+  if (!confirm("타이머를 끌까요?")) return;
+  timerEnd = 0; store.set("timerEnd", null);
+  closePlayer(); $("#picker").hidden = true; tick();
 });
 let holdT = null; const hold = $("#holdBtn");
 hold.addEventListener("pointerdown", e => {

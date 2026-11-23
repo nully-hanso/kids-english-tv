@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="English TV">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#eef2ff">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b1533">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap">
 <style>
-/* 첫 화면: 여백 가운데에 '티켓' 3장. 고른 영상을 끝까지 보면 '다 봤어요' 도장이 찍혀요.
+/* 첫 화면은 작은 극장: 막이 드리운 스크린에 약속 한 줄, 그 앞에 '티켓' 3장. 고른 영상을 끝까지 보면 '다 봤어요' 도장이 찍혀요.
    고르는 화면: 묶음 탭 → 채널별로 영상이 가로로 줄지어 있어요. */
 :root {
   --bg: #eef2ff;
@@ -25,6 +25,12 @@
   --coral: #f2545b;
   --sun: #ffc43d;
   --teal: #1fa898;
+  --hall: #1b1533;      /* 극장 벽 */
+  --hall-2: #2c2456;
+  --velvet: #b3123f;    /* 막 */
+  --velvet-2: #7e0b2c;
+  --bulb: #ffd36b;      /* 간판 전구 */
+  --dim: #b4add6;       /* 어두운 바탕의 보조 글씨 */
   --display: "Fredoka", "Jua", system-ui, sans-serif;
   --ko: "Jua", "Fredoka", system-ui, sans-serif;
   color-scheme: light;
@@ -33,7 +39,7 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body {
-  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--ko);
+  margin: 0; background: var(--hall); color: var(--ink); font-family: var(--ko);
   -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
 }
 button { font: inherit; color: inherit; }
@@ -42,32 +48,54 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 /* ---------- 첫 화면 ---------- */
 .home {
   min-height: 100%; display: flex; flex-direction: column;
+  background: radial-gradient(120% 70% at 50% 18%, var(--hall-2), var(--hall) 70%); color: #fff;
   padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
 }
 .top { display: flex; align-items: center; gap: 10px; }
-.logo { width: 40px; height: 40px; border-radius: 12px; background: var(--sun); display: grid; place-items: center; flex: none; }
-.logo svg { width: 24px; height: 24px; }
-.brand { font-family: var(--display); font-weight: 700; font-size: 20px; }
+/* 극장 간판: 점선 테두리가 전구처럼 */
+.brand {
+  font-family: var(--display); font-weight: 700; font-size: 19px; color: var(--bulb);
+  border: 5px dotted var(--bulb); border-radius: 12px; padding: 4px 12px;
+  text-shadow: 0 0 10px rgba(255,211,107,.6); filter: drop-shadow(0 0 4px rgba(255,211,107,.45));
+}
 .timers { margin-left: auto; display: flex; gap: 6px; }
 .timerbtn {
-  border: 0; border-radius: 999px; background: var(--paper); padding: 8px 12px; cursor: pointer;
+  border: 0; border-radius: 999px; background: rgba(255,255,255,.1); color: #fff; padding: 8px 12px; cursor: pointer;
   display: flex; align-items: center; gap: 6px; font-family: var(--ko); font-size: 16px;
-  font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 2px var(--line);
+  font-variant-numeric: tabular-nums;
 }
-.timerbtn[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: none; }
+.timerbtn[aria-pressed="true"] { background: var(--bulb); color: var(--ink); }
 
 .center {
   flex: 1; width: 100%; max-width: 460px; margin: 0 auto;
-  display: flex; flex-direction: column; justify-content: center; padding: 40px 0 24px;
+  display: flex; flex-direction: column; justify-content: center; padding: 44px 0 24px;
 }
-.motto { font-family: var(--ko); font-weight: 400; font-size: clamp(30px, 8.4vw, 40px); line-height: 1.25; text-align: center; margin: 0; letter-spacing: -.5px; }
-.sub { text-align: center; color: var(--muted); font-size: 18px; margin: 12px 0 34px; }
+/* 스크린과 막 */
+.theater { position: relative; padding: 0 30px; }
+.valance {
+  position: absolute; left: 0; right: 0; top: -14px; height: 26px; z-index: 2;
+  background:
+    radial-gradient(circle at 50% 0, var(--velvet) 13px, transparent 14px) 0 6px / 28px 20px repeat-x,
+    linear-gradient(var(--velvet), var(--velvet)) 0 0 / 100% 10px no-repeat;
+}
+.theater::before, .theater::after {
+  content: ""; position: absolute; top: -14px; bottom: -18px; width: 40px; z-index: 1;
+  background: repeating-linear-gradient(90deg, var(--velvet) 0 7px, var(--velvet-2) 7px 12px, #cf2453 12px 16px, var(--velvet) 16px 20px);
+}
+.theater::before { left: 0; border-bottom-right-radius: 70% 26px; }
+.theater::after { right: 0; border-bottom-left-radius: 70% 26px; }
+.screen {
+  background: linear-gradient(#ffffff, #e7e9fb); color: var(--ink); border-radius: 10px;
+  padding: 40px 16px 34px; box-shadow: 0 0 70px rgba(170,180,255,.35);
+}
+.motto { font-family: var(--ko); font-weight: 400; font-size: clamp(29px, 8vw, 40px); line-height: 1.25; text-align: center; margin: 0; letter-spacing: -.5px; }
+.sub { text-align: center; color: var(--dim); font-size: 18px; margin: 30px 0 22px; }
 
 .tickets { display: flex; flex-direction: column; gap: 16px; }
 .ticket {
   --c: var(--coral);
   position: relative; display: flex; align-items: stretch; width: 100%; min-height: 104px;
-  border: 0; padding: 0; cursor: pointer; text-align: left; background: var(--paper);
+  border: 0; padding: 0; cursor: pointer; text-align: left; background: var(--paper); color: var(--ink);
   border-radius: 18px; overflow: hidden;
   /* 양옆 반원 홈: 티켓 모양 */
   -webkit-mask: radial-gradient(circle 13px at 0 50%, #0000 97%, #000) left / 51% 100% no-repeat,
@@ -90,10 +118,11 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 .ticket .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .ticket .bar i { display: block; height: 100%; background: var(--c); border-radius: 3px; }
 /* 빈 티켓 */
-.ticket.empty { background: transparent; box-shadow: inset 0 0 0 3px var(--line); -webkit-mask: none; mask: none; border-radius: 18px; align-items: center; justify-content: center; color: var(--muted); font-size: 20px; gap: 8px; }
+.ticket.empty { background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 3px rgba(255,255,255,.16); -webkit-mask: none; mask: none; border-radius: 18px; align-items: center; justify-content: center; color: var(--dim); font-size: 20px; gap: 8px; }
 .ticket.empty::before { content: "+"; font-family: var(--display); font-size: 30px; line-height: 1; color: var(--c); }
 /* 다 본 티켓: 도장 */
 .ticket.done .stub img, .ticket.done .t { opacity: .45; }
+.stamp.quit { border-color: #4b587c; color: #4b587c; background: #fff; }
 .stamp {
   position: absolute; right: 18px; top: 50%; transform: translateY(-50%) rotate(-14deg);
   border: 3px solid var(--coral); color: var(--coral); border-radius: 12px; padding: 4px 10px;
@@ -105,11 +134,11 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 @keyframes fill { from { transform: scaleX(0); } }
 
 .cta {
-  margin: 30px auto 0; display: block; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--ink); color: #fff; font-family: var(--ko); font-size: 21px; padding: 15px 30px;
+  margin: 28px auto 0; display: block; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--bulb); color: var(--ink); font-family: var(--ko); font-size: 21px; padding: 15px 30px;
 }
-.foot { text-align: center; color: var(--muted); font-size: 14px; margin: 0; }
-.foot a { color: var(--muted); }
+.foot { text-align: center; color: var(--dim); font-size: 14px; margin: 0; opacity: .8; }
+.foot a { color: var(--dim); }
 @media (orientation: landscape) and (min-width: 700px) {
   .center { max-width: 900px; padding-top: 16px; }
   .tickets { flex-direction: row; }
@@ -121,7 +150,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   .ticket.empty { min-height: 200px; }
   .stamp { top: 34%; right: 50%; transform: translate(50%, -50%) rotate(-14deg); }
 }
-@media (orientation: landscape) and (max-height: 500px) { .center { padding-top: 8px; } .sub { margin-bottom: 16px; } }
+@media (orientation: landscape) and (max-height: 500px) { .center { padding-top: 22px; } .screen { padding: 18px 16px 14px; } .sub { margin: 20px 0 14px; } }
 
 /* ---------- 고르는 화면 ---------- */
 .picker {
@@ -171,6 +200,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 .back { border: 0; border-radius: 999px; background: var(--sun); color: var(--ink); padding: 9px 18px; font-family: var(--ko); font-size: 19px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex: none; }
 .now { color: #fff; font-family: var(--display); font-size: 17px; font-weight: 600; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .timepill { flex: none; color: #fff; background: rgba(255,255,255,.16); border-radius: 999px; padding: 7px 12px; font-family: var(--display); font-variant-numeric: tabular-nums; }
+.quit { flex: none; border: 0; border-radius: 999px; background: rgba(255,255,255,.16); color: #fff; padding: 8px 14px; font-family: var(--ko); font-size: 16px; cursor: pointer; }
 .stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 12px 12px; }
 .frame { width: 100%; aspect-ratio: 16 / 9; flex: none; }
 .frame iframe { width: 100%; height: 100%; border: 0; border-radius: 12px; background: #000; }
@@ -202,7 +232,6 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 
 <div class="home" id="home">
   <div class="top">
-    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#1c2b4b"/><path d="M10 9.2v5.6l4.8-2.8z" fill="#fff"/></svg></div>
     <span class="brand">English TV</span>
     <div class="timers" id="timers">
       <button class="timerbtn" type="button" data-min="15" aria-label="15분 타이머 시작">15분</button>
@@ -212,7 +241,10 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   </div>
 
   <main class="center">
-    <h1 class="motto">고른 영상은<br>끝까지 봐요</h1>
+    <div class="theater">
+      <div class="valance" aria-hidden="true"></div>
+      <div class="screen"><h1 class="motto">고른 영상은<br>끝까지 봐요</h1></div>
+    </div>
     <p class="sub" id="sub"></p>
     <div class="tickets" id="tickets"></div>
     <button class="cta" id="cta" type="button" hidden></button>
@@ -240,6 +272,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
     </button>
     <div class="now" id="now"></div>
     <span class="timepill" id="timePill" hidden><span id="pillText"></span></span>
+    <button class="quit" id="quitBtn" type="button" hidden>그만 볼래요</button>
   </div>
   <div class="stage"><div class="frame" id="frame"></div></div>
 </div>
@@ -314,7 +347,9 @@ const CHANNELS = [
   { cat: "world", name: "Rick Steves' Europe", id: "UCchgIh8Tc4sTmBfnMQ5pDdg", img: "OYyMulKZzeJKBhYDurOlfK7FpXnOenRCodtY4AFp2l7SCjQcEdVgq1qxPTFuno3gCQzL8t2N" },
   { cat: "world", name: "Homeschool Pop",    id: "UCfPyVJEBD7Di1YYjTdS2v8g", img: "yENC7nbCi2IqwCeDy8T7Kzpcubxt-iz_yR69dlKGXvwufaEJIbk7iYYseVAqMAAoLNrs4hjR" },
   { cat: "world", name: "지니스쿨 역사",      lang: "한국어", id: "UCvkLnjWQIntS0pnreTEfP_g", img: "ytc/AIdro_kZz4gcXFGhdi9glyffWVM94lS1RkDWN7YsFdw8JBAzXg" },
-  { cat: "world", name: "설쌤TV",            lang: "한국어", id: "UC5R4VhnTNZvPRG1c5FEWlPw", img: "7ohnOBqlce5omRn-FqR9ArCKynAeBrsjC038Nao1JrqIvh7IgUU2v0sr3Gzev8PKXoiiOsP6" },
+  // EBS 공식 재생목록(영상 하나에 2편씩 묶여 있어 17~27분)
+  { cat: "world", name: "역사가 술술 (EBS)",  lang: "한국어", list: "PLKDPDirFfxZRtCM_d7IHMbenIaftX2LPf" },
+  { cat: "world", name: "시간을 달리는 세계사 (EBS)", lang: "한국어", list: "PLKDPDirFfxZS8L33EQ0-_RHzlNzzFFDwA" },
   // 만들기와 요리
   { cat: "make", name: "Brick Experiment Channel", id: "UClsFdM0HzTdF1JYoraQ0aUw", img: "ytc/AIdro_m8-EAIC1BpP1XGw_bY5ECY9aO4x9jikMRjJH-aSJQp0-w" },
   { cat: "make", name: "Brick Science",      id: "UCpQB577lHFyWTyvrS73Ldlg", img: "m4vb2DtUm-T2yQp4WzHqD-9bqyMx145NEvyfb7NgarayJJ-6BWZAq7tsNHiyBSlKaDFZnA43jZQ" },
@@ -360,7 +395,9 @@ fetch("pool.json", { cache: "no-cache" }).then(r => r.json())
   .catch(() => {});
 
 /* ---------- 첫 화면 ---------- */
-const isDone = v => !!(v && prog[v.id] && prog[v.id].done);
+// 다 봤거나(done) 그만뒀으면(quit) 그 티켓은 쓴 것
+const isDone = v => !!(v && prog[v.id] && (prog[v.id].done || prog[v.id].quit));
+const isQuit = v => !!(v && prog[v.id] && prog[v.id].quit);
 function renderHome(justId) {
   const items = basket.items, doneN = items.filter(isDone).length;
   $("#tickets").innerHTML = [0, 1, 2].map(i => {
@@ -375,7 +412,7 @@ function renderHome(justId) {
         <span class="m">${esc(v.ch)}, ${mmss(v.sec)}</span>
         ${!done && pct > 0 ? `<span class="bar"><i style="width:${pct}%"></i></span>` : ""}
       </span>
-      ${done ? '<span class="stamp">다 봤어요</span>' : ""}
+      ${done ? (isQuit(v) ? '<span class="stamp quit">그만 봤어요</span>' : '<span class="stamp">다 봤어요</span>') : ""}
     </button>`;
   }).join("");
 
@@ -384,10 +421,10 @@ function renderHome(justId) {
     $("#sub").textContent = items.length ? `${3 - items.length}개 더 골라요` : "보고 싶은 영상 3개를 골라 담아요";
     cta.hidden = false; cta.textContent = items.length ? "마저 고르기" : "영상 3개 고르기";
   } else if (doneN === 3) {
-    $("#sub").textContent = "3개 다 봤어요. 새로 고를 수 있어요!";
+    $("#sub").textContent = "티켓 3장을 다 썼어요. 새로 고를 수 있어요!";
     cta.hidden = false; cta.textContent = "새로 3개 고르기";
   } else {
-    $("#sub").textContent = doneN ? `${3 - doneN}개 남았어요` : "티켓을 눌러서 봐요";
+    $("#sub").textContent = doneN ? `티켓이 ${3 - doneN}장 남았어요` : "티켓을 눌러서 봐요";
     cta.hidden = true;
   }
 }
@@ -562,7 +599,27 @@ setInterval(() => {
   lastT = t;
   if (t > 0) p.pos = t;
   store.set("prog", prog);
+  // 조금은 보고 나서 그만두기: 3분 또는 영상의 절반 중 짧은 쪽을 본 뒤에 버튼이 생겨요
+  $("#quitBtn").hidden = p.seen < Math.min(QUIT_AFTER, (cur.sec || 0) / 2);
 }, 1000);
+
+const QUIT_AFTER = 180;
+$("#quitBtn").addEventListener("click", () => {
+  if (!cur) return;
+  if (!confirm("이 영상 그만 볼까요?\n그만 봐도 티켓은 다시 돌아오지 않아요.")) return;
+  const v = cur, p = prog[v.id] || { pos: 0, seen: 0 };
+  p.quit = true; prog[v.id] = p; store.set("prog", prog);
+  // 부모님용 기록: 아이가 어떤 영상을 그만뒀는지
+  const quits = store.get("quits", []);
+  quits.unshift({ id: v.id, title: v.title, ch: v.ch, seen: Math.round(p.seen), sec: v.sec, at: Date.now() });
+  store.set("quits", quits.slice(0, 100));
+  closePlayer();
+  const left = basket.items.filter(x => !isDone(x)).length;
+  $("#cheerTitle").textContent = "그만 봤어요";
+  $("#cheerMsg").textContent = left ? `티켓이 ${left}장 남았어요` : "티켓 3장을 다 썼어요. 새로 고를 수 있어요!";
+  $("#cheerStamp").hidden = true;
+  $("#cheer").hidden = false;
+});
 
 function finish() {
   if (!cur) return;
@@ -575,7 +632,7 @@ function finish() {
     store.set("history", history);
     const left = basket.items.filter(x => !isDone(x)).length;
     $("#cheerTitle").textContent = "끝까지 봤어요!";
-    $("#cheerMsg").textContent = left ? `티켓이 ${left}장 남았어요` : "3개 다 봤어요. 새로 고를 수 있어요!";
+    $("#cheerMsg").textContent = left ? `티켓이 ${left}장 남았어요` : "티켓 3장을 다 썼어요. 새로 고를 수 있어요!";
     $("#cheerStamp").hidden = false;
   } else {
     p.pos = 0; prog[v.id] = p; store.set("prog", prog);
@@ -592,6 +649,7 @@ function closePlayer() {
   pending = null; resumeOnReturn = false;
   if (player && player.destroy) { try { player.destroy(); } catch {} }
   player = null; cur = null;
+  $("#quitBtn").hidden = true;
   $("#frame").innerHTML = "";
   $("#player").hidden = true;
   renderHome();

@@ -14,6 +14,7 @@ UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/
 KEEP = 30                    # 채널마다 모아 둘 최대 개수
 MIN_SEC, MAX_SEC = 120, 900  # 2분 ~ 15분
 LOOSE_MAX = 1500             # 짧은 영상이 5개도 안 되는 채널은 25분까지 허용
+LIST_MAX = 1800              # 재생목록 항목은 30분까지
 
 
 def curl(url, effective=False):
@@ -42,7 +43,7 @@ def sources():
             ids = re.findall(r'"([^"]+)"', vids.group(1))
             out.append({"cat": cat, "ch": name, "key": ",".join(ids), "videos": ids})
         elif lst:
-            out.append({"cat": cat, "ch": name, "key": lst.group(1), "playlist": lst.group(1)})
+            out.append({"cat": cat, "ch": name, "key": lst.group(1), "playlist": lst.group(1), "list": True})
         elif cid:
             out.append({"cat": cat, "ch": name, "key": cid.group(1), "playlist": "UULF" + cid.group(1)[2:]})
     return out
@@ -117,7 +118,9 @@ def main():
             got = [dict(base, id=i, title=t, sec=s) for i, t, s in items]
             short = [v for v in got if MIN_SEC <= v["sec"] <= MAX_SEC]
             if len(short) < 5:
-                short = [v for v in got if MIN_SEC <= v["sec"] <= LOOSE_MAX]
+                # 부모가 고른 재생목록은 묶음 영상이 많아 30분까지 허용
+                loose = LIST_MAX if "list" in src else LOOSE_MAX
+                short = [v for v in got if MIN_SEC <= v["sec"] <= loose]
             got = short[:KEEP]
         if not items:
             failed += 1

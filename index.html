@@ -457,6 +457,30 @@ function advanceEp(k) {
   else sprog[k] = { seen: [...(p.seen || []), p.cur].filter(Boolean).slice(-300), cur: null, pos: 0 };
   store.set("sprog", sprog);
 }
+function nextEps(k, count) {
+  const eps = episodes(k), p = sprog[k] || {}, s = SERIES[k];
+  let list;
+  if (s.lists) { const i = p.i || 0; list = eps.slice(i, i + count).map((e, j) => ({ ...e, no: i + j + 1 })); }
+  else { const seen = new Set(p.seen || []); const first = eps.find(e => e.id === p.cur);
+         list = [first, ...eps.filter(e => !seen.has(e.id) && e.id !== p.cur)].filter(Boolean).slice(0, count); }
+  return list.map(e => {
+    const v = { id: e.id, title: e.no ? `${e.no}화 ${e.title}` : e.title, ch: e.ch || s.name, key: e.key || "series:" + k, cat: e.cat || null, sec: e.sec };
+    seriesCards[v.id] = v; return v;
+  });
+}
+// 오후 극장에서 끝까지 본 영상이 아침 방송 시리즈에 있으면, 아침 방송도 그다음부터
+function syncSeries(id) {
+  for (const k of Object.keys(SERIES)) {
+    const s = SERIES[k], p = sprog[k] || {};
+    if (s.lists) {
+      const idx = episodes(k).findIndex(e => e.id === id);
+      if (idx >= (p.i || 0)) sprog[k] = { i: idx + 1, pos: 0 };
+    } else if (episodes(k).some(e => e.id === id)) {
+      sprog[k] = { seen: [...(p.seen || []), id].slice(-300), cur: p.cur === id ? null : p.cur, pos: p.cur === id ? 0 : (p.pos || 0) };
+    }
+  }
+  store.set("sprog", sprog);
+}
 function epLabel(k, n) { const s = SERIES[k]; return `${s.label}: ${s.name}${n && n.no ? ` ${n.no}화` : ""}`; }
 function playMorning() {
   if (timeUp || mode !== "morning" || !timerEnd) return;
@@ -600,11 +624,23 @@ function avatar(ch) {
 }
 function renderPicker() {
   renderTray();
-  const tabs = [...GROUPS, { key: "again", label: "다시 보기", color: "#1c2b4b" }];
+  const tabs = [{ key: "series", label: "아침 방송 이어 보기", color: "#c27c00" }, ...GROUPS, { key: "again", label: "다시 보기", color: "#1c2b4b" }];
   if (!tabs.some(t => t.key === ptab)) ptab = "words";
   $("#ptabs").innerHTML = tabs.map(g =>
     `<button class="ptab" type="button" data-k="${g.key}" style="--g:${g.color}" aria-pressed="${g.key === ptab}">${g.label}</button>`).join("");
   const body = $("#pbody");
+  if (ptab === "series") {
+    // 시리즈마다 아침 방송에서 다음에 나올 영상들(보던 화가 맨 앞)
+    const today = todayKey();
+    body.innerHTML = Object.keys(SERIES).map(k => {
+      const eps = nextEps(k, 8); if (!eps.length) return "";
+      return `<section class="chrow">
+        <h3 class="chname">${esc(SERIES[k].label)}: ${esc(SERIES[k].name)}${k === today ? ` <small>오늘 아침 방송</small>` : ""}</h3>
+        <div class="strip">${eps.map(v => vidCard(v)).join("")}</div>
+      </section>`;
+    }).join("") || `<p class="note">방송 목록을 불러오는 중이에요</p>`;
+    return;
+  }
   if (ptab === "again") {
     body.innerHTML = history.length
       ? `<div class="hgrid">${history.map(v => vidCard(v, true)).join("")}</div>`
@@ -626,7 +662,8 @@ $("#ptabs").addEventListener("click", e => {
   const b = e.target.closest(".ptab"); if (!b) return;
   ptab = b.dataset.k; store.set("ptab", ptab); renderPicker(); $("#pbody").scrollTop = 0;
 });
-const findVideo = id => POOL.find(v => v.id === id) || history.find(v => v.id === id);
+let seriesCards = {};   // 고르는 화면에 그린 아침 방송 영상들
+const findVideo = id => seriesCards[id] || POOL.find(v => v.id === id) || history.find(v => v.id === id);
 $("#pbody").addEventListener("click", e => {
   const b = e.target.closest(".vid"); if (!b) return;
   const id = b.dataset.id, i = basket.items.findIndex(v => v.id === id);
@@ -635,6 +672,11 @@ $("#pbody").addEventListener("click", e => {
     const v = findVideo(id); if (!v) return;
     basket.items.push({ id: v.id, title: v.title, ch: v.ch, key: v.key, cat: v.cat, sec: v.sec });
     if (prog[v.id]) { delete prog[v.id]; store.set("prog", prog); }   // 다시 보는 영상은 처음부터
+    // 아침에 보다 만 화면 그 자리부터(아침에 본 만큼은 본 걸로)
+    for (const k of Object.keys(SERIES)) {
+      const n = nextEp(k), sp = sprog[k] || {};
+      if (n && n.ep.id === v.id && sp.pos > 5) { prog[v.id] = { pos: sp.pos, seen: sp.pos }; store.set("prog", prog); }
+    }
   } else {
     const t = $("#tray"); t.classList.remove("shake"); void t.offsetWidth; t.classList.add("shake");
     return;
@@ -740,6 +782,7 @@ function finish() {
   closePlayer();
   if (ok) {
     p.done = true; p.pos = v.sec; prog[v.id] = p; store.set("prog", prog);
+    syncSeries(v.id);
     history = [{ ...v, at: Date.now() }, ...history.filter(h => h.id !== v.id)].slice(0, 200);
     store.set("history", history);
     const left = basket.items.filter(x => !isDone(x)).length;

@@ -1,23 +1,26 @@
-"""'오늘의 추천'에 쓸 영상 모음(pool.json)을 만듭니다.
+"""고르는 화면에 쓸 영상 모음(pool.json)을 만듭니다.
 
-index.html의 CHANNELS에서 채널·재생목록을 읽고, 각각의 최신 영상(RSS)을 모은 뒤
-영상 길이를 확인해 2~15분짜리만 남깁니다. 하루에 한 번 GitHub Actions가 실행합니다.
+index.html의 CHANNELS에서 채널·재생목록을 읽고, 각 재생목록 페이지에서
+영상 제목과 길이를 가져와 2~15분짜리만 남깁니다(채널마다 최근 것 최대 30개).
+영상 페이지는 서버에서 막히는 일이 많아서 재생목록 페이지만 씁니다.
+하루에 한 번 GitHub Actions가 실행합니다.
 실행: python3 tools/build_pool.py   (kids-english-tv 폴더에서)
 """
-import json, re, subprocess, time, html, os, sys
+import json, re, subprocess, time, os, sys
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36"
-PER_SOURCE = 15            # 채널마다 최신 몇 개까지 확인할지(RSS 최대 15개)
-KEEP = 30                  # 채널마다 모아 둘 최대 개수(예전 영상도 남겨서 고를 거리가 늘어나요)
+KEEP = 30                    # 채널마다 모아 둘 최대 개수
 MIN_SEC, MAX_SEC = 120, 900  # 2분 ~ 15분
-LOOSE_MAX = 1500             # 짧은 영상이 3개도 안 되는 채널은 25분까지 허용
+LOOSE_MAX = 1500             # 짧은 영상이 5개도 안 되는 채널은 25분까지 허용
 
 
-def get(url):
-    r = subprocess.run(["curl", "-sL", "--max-time", "20", "-A", UA, "-H", "Accept-Language: en", url],
-                       capture_output=True)
+def curl(url, effective=False):
+    args = ["curl", "-sL", "--max-time", "25", "-A", UA, "-H", "Accept-Language: en"]
+    if effective:
+        args += ["-o", "/dev/null", "-w", "%{url_effective}"]
+    r = subprocess.run(args + [url], capture_output=True)
     return r.stdout.decode("utf-8", "replace")
 
 
@@ -26,8 +29,10 @@ def sources():
     block = s[s.index("const CHANNELS = ["):s.index("CHANNELS.forEach")]
     out = []
     for line in block.splitlines():
+        if line.strip().startswith("//"):
+            continue
         m = re.search(r'\{ cat: "(\w+)", name: "([^"]+)"(.*)\}', line)
-        if not m or line.strip().startswith("//"):
+        if not m:
             continue
         cat, name, rest = m.groups()
         cid = re.search(r'id: "(UC[^"]+)"', rest)
@@ -43,26 +48,49 @@ def sources():
     return out
 
 
-def feed(playlist):
-    x = get("https://www.youtube.com/feeds/videos.xml?playlist_id=" + playlist)
-    items = []
-    for e in re.findall(r"<entry>(.*?)</entry>", x, re.S):
-        vid = re.search(r"<yt:videoId>([^<]+)", e)
-        title = re.search(r"<title>([^<]*)", e)
-        if vid and title:
-            items.append((vid.group(1), html.unescape(title.group(1)).strip()))
-    return items
+def secs(t):
+    p = [int(x) for x in t.split(":")]
+    return p[0] * 3600 + p[1] * 60 + p[2] if len(p) == 3 else p[0] * 60 + p[1]
 
 
-def length(vid):
-    h = get("https://www.youtube.com/watch?v=" + vid)
-    m = re.search(r'"lengthSeconds":"(\d+)"', h)
+def playlist(list_id):
+    """재생목록 페이지에서 (영상ID, 제목, 길이초) 목록을 순서대로(최근 것 먼저) 읽기"""
+    h = curl("https://www.youtube.com/playlist?list=" + list_id)
+    m = re.search(r"var ytInitialData = (\{.*?\});</script>", h)
     if not m:
-        return None
-    # 퍼가기 금지 영상은 빼기
-    if '"playableInEmbed":false' in h:
-        return -1
-    return int(m.group(1))
+        return []
+    found = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            if "lockupViewModel" in o:
+                found.append(o["lockupViewModel"])
+            elif "playlistVideoRenderer" in o:
+                found.append({"_old": o["playlistVideoRenderer"]})
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+
+    walk(json.loads(m.group(1)))
+    out = []
+    for r in found:
+        try:
+            if "_old" in r:   # 예전 형식
+                o = r["_old"]
+                if o.get("lengthSeconds"):
+                    out.append((o["videoId"], "".join(x["text"] for x in o["title"]["runs"]), int(o["lengthSeconds"])))
+                continue
+            if r.get("contentType") != "LOCKUP_CONTENT_TYPE_VIDEO":
+                continue
+            title = r["metadata"]["lockupMetadataViewModel"]["title"]["content"]
+            dur = re.search(r'"text": "(\d+(?::\d\d){1,2})"', json.dumps(r))
+            if dur:
+                out.append((r["contentId"], title, secs(dur.group(1))))
+        except (KeyError, TypeError):
+            continue
+    return out
 
 
 def main():
@@ -74,43 +102,31 @@ def main():
                 old[v["id"]] = v
         except Exception:
             pass
-    known = dict((k, v["sec"]) for k, v in old.items())
 
     videos, failed = [], 0
     for src in sources():
+        base = {"ch": src["ch"], "key": src["key"], "cat": src["cat"]}
         if "videos" in src:
-            # 직접 적은 영상: 길이 제한 없이 넣기
-            for vid in src["videos"]:
-                sec = known.get(vid) or length(vid)
-                o = json.loads(get("https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=" + vid) or "{}") if vid not in old else {"title": old[vid]["title"]}
-                if sec and sec > 0:
-                    videos.append({"id": vid, "title": o.get("title", src["ch"]), "ch": src["ch"], "key": src["key"], "cat": src["cat"], "sec": sec})
-            continue
-        items = feed(src["playlist"])[:PER_SOURCE]
+            # 직접 적은 영상: 임시 재생목록으로 길이를 읽고, 길이 제한 없이 넣기
+            url = curl("https://www.youtube.com/watch_videos?video_ids=" + ",".join(src["videos"]), effective=True)
+            tl = re.search(r"list=([\w-]+)", url)
+            items = playlist(tl.group(1)) if tl else []
+            got = [dict(base, id=i, title=t, sec=s) for i, t, s in items if i in src["videos"]]
+        else:
+            items = playlist(src["playlist"])
+            got = [dict(base, id=i, title=t, sec=s) for i, t, s in items]
+            short = [v for v in got if MIN_SEC <= v["sec"] <= MAX_SEC]
+            if len(short) < 5:
+                short = [v for v in got if MIN_SEC <= v["sec"] <= LOOSE_MAX]
+            got = short[:KEEP]
         if not items:
             failed += 1
-            # 이번에 못 읽었으면 예전 목록을 그대로 유지
-            videos += [dict(v, cat=src["cat"], ch=src["ch"]) for v in old.values() if v.get("key") == src["key"]][:KEEP]
-            continue
-        got = []
-        for vid, title in items:
-            sec = known.get(vid)
-            if sec is None:
-                sec = length(vid)
-                time.sleep(0.3)
-            if sec is None or sec < 0:
-                continue
-            got.append({"id": vid, "title": title, "ch": src["ch"], "key": src["key"], "cat": src["cat"], "sec": sec})
-        short = [v for v in got if MIN_SEC <= v["sec"] <= MAX_SEC]
-        if len(short) < 3:
-            short = [v for v in got if MIN_SEC <= v["sec"] <= LOOSE_MAX]
-        # 새 영상을 앞에, 예전에 모아 둔 영상은 뒤에 이어 붙이기
-        ids = {v["id"] for v in short}
-        kept = [dict(v, cat=src["cat"], ch=src["ch"]) for v in old.values() if v.get("key") == src["key"] and v["id"] not in ids]
-        videos += (short + kept)[:KEEP]
-        print(f"{src['ch']}: new {len(short)}/{len(items)}, total {min(KEEP, len(short) + len(kept))}", file=sys.stderr)
+            got = [dict(v, **base) for v in old.values() if v.get("key") == src["key"]][:KEEP]   # 못 읽으면 예전 것 유지
+        videos += got
+        print(f"{src['ch']}: {len(got)} (페이지 {len(items)}개)", file=sys.stderr)
+        time.sleep(0.5)
 
-    if len(videos) < 30:
+    if len(videos) < 60:
         sys.exit(f"영상이 너무 적어서({len(videos)}개) pool.json을 바꾸지 않았어요")
     json.dump({"updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "videos": videos},
               open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=0)

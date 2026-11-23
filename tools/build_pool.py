@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36"
-PER_SOURCE = 10            # 채널마다 최신 몇 개까지 길이를 확인할지
+PER_SOURCE = 15            # 채널마다 최신 몇 개까지 확인할지(RSS 최대 15개)
+KEEP = 30                  # 채널마다 모아 둘 최대 개수(예전 영상도 남겨서 고를 거리가 늘어나요)
 MIN_SEC, MAX_SEC = 120, 900  # 2분 ~ 15분
 LOOSE_MAX = 1500             # 짧은 영상이 3개도 안 되는 채널은 25분까지 허용
 
@@ -31,7 +32,11 @@ def sources():
         cat, name, rest = m.groups()
         cid = re.search(r'id: "(UC[^"]+)"', rest)
         lst = re.search(r'list: "([^"]+)"', rest)
-        if lst:
+        vids = re.search(r'videos: \[([^\]]*)\]', rest)
+        if vids:
+            ids = re.findall(r'"([^"]+)"', vids.group(1))
+            out.append({"cat": cat, "ch": name, "key": ",".join(ids), "videos": ids})
+        elif lst:
             out.append({"cat": cat, "ch": name, "key": lst.group(1), "playlist": lst.group(1)})
         elif cid:
             out.append({"cat": cat, "ch": name, "key": cid.group(1), "playlist": "UULF" + cid.group(1)[2:]})
@@ -73,11 +78,19 @@ def main():
 
     videos, failed = [], 0
     for src in sources():
+        if "videos" in src:
+            # 직접 적은 영상: 길이 제한 없이 넣기
+            for vid in src["videos"]:
+                sec = known.get(vid) or length(vid)
+                o = json.loads(get("https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=" + vid) or "{}") if vid not in old else {"title": old[vid]["title"]}
+                if sec and sec > 0:
+                    videos.append({"id": vid, "title": o.get("title", src["ch"]), "ch": src["ch"], "key": src["key"], "cat": src["cat"], "sec": sec})
+            continue
         items = feed(src["playlist"])[:PER_SOURCE]
         if not items:
             failed += 1
             # 이번에 못 읽었으면 예전 목록을 그대로 유지
-            videos += [v for v in old.values() if v.get("key") == src["key"]]
+            videos += [dict(v, cat=src["cat"], ch=src["ch"]) for v in old.values() if v.get("key") == src["key"]][:KEEP]
             continue
         got = []
         for vid, title in items:
@@ -91,8 +104,11 @@ def main():
         short = [v for v in got if MIN_SEC <= v["sec"] <= MAX_SEC]
         if len(short) < 3:
             short = [v for v in got if MIN_SEC <= v["sec"] <= LOOSE_MAX]
-        videos += short
-        print(f"{src['ch']}: {len(short)}/{len(items)}", file=sys.stderr)
+        # 새 영상을 앞에, 예전에 모아 둔 영상은 뒤에 이어 붙이기
+        ids = {v["id"] for v in short}
+        kept = [dict(v, cat=src["cat"], ch=src["ch"]) for v in old.values() if v.get("key") == src["key"] and v["id"] not in ids]
+        videos += (short + kept)[:KEEP]
+        print(f"{src['ch']}: new {len(short)}/{len(items)}, total {min(KEEP, len(short) + len(kept))}", file=sys.stderr)
 
     if len(videos) < 30:
         sys.exit(f"영상이 너무 적어서({len(videos)}개) pool.json을 바꾸지 않았어요")

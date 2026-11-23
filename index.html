@@ -333,7 +333,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
     <button class="undo" id="undo" type="button" hidden>잘못 눌렀나요? 시간 다시 고르기</button>
   </main>
 
-  <p class="foot">엄마 아빠가 고른 채널만 나와요 ·
+  <p class="foot">좋은 영상만 골라 상영해요 ·
     <a href="https://accounts.google.com/ServiceLogin?service=youtube&amp;continue=https%3A%2F%2Fwww.youtube.com%2F" target="_blank" rel="noopener">유튜브 로그인</a></p>
 </div>
 
@@ -971,7 +971,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-23-1";
+const BUILD = "2026-11-23-2";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {

@@ -383,13 +383,26 @@ body { background: var(--midnight); }
 }
 @media (orientation: landscape) and (max-height: 500px) { .scene { height: 62vh; } .home .doors { margin-top: -18px; } }
 @media (prefers-reduced-motion: reduce) { .tw, .rocket, .sparks { animation: none; } .cur { transition: none; } }
-.world3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .9s ease; }
-.scene.has3d .world3d { opacity: 1; }
-.scene.has3d::after { height: 16%; }
+/* ===== 그림 무대(2026-11-23): 별하늘 + 그림책 세계 + 구름 + 벨벳 커튼 ===== */
+.scene .sky { position: absolute; inset: 0; background: #120d38 url(assets/sky.webp) center / cover no-repeat; }
+.world-img { position: absolute; left: 50%; bottom: 0; height: 92%; width: auto; max-width: none; transform: translateX(-50%); }
+.sparkles { position: absolute; left: 50%; top: 2%; width: min(92%, 1000px); transform: translateX(-50%); opacity: .55; mix-blend-mode: screen; pointer-events: none; animation: drift 9s ease-in-out infinite; }
+@keyframes drift { 50% { transform: translateX(-50%) translateY(-8px); opacity: .75; } }
+.clouds { position: absolute; left: 0; bottom: -4%; width: 100%; height: 34%; object-fit: cover; object-position: center bottom; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 0 24%, transparent 40% 60%, #000 76% 100%); mask-image: linear-gradient(90deg, #000 0 24%, transparent 40% 60%, #000 76% 100%); }
+.valance3 { position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 21%; background: url(assets/valance.webp) center top / auto 100% repeat-x; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+.drape { position: absolute; z-index: 3; top: 0; height: 100%; width: clamp(110px, 19vw, 250px); max-width: none; object-fit: cover; transition: transform 1.6s cubic-bezier(.6,0,.2,1); filter: drop-shadow(0 0 14px rgba(0,0,0,.5)); }
+.drape.left { left: 0; transform-origin: left center; object-position: left top; }
+.drape.right { right: 0; transform-origin: right center; object-position: right top; }
+.home.closed .drape { transform: scaleX(2.3); }
+.scene::after { height: 18%; z-index: 1; }
+.title { z-index: 4; top: 20%; }
+.title::before { content: ""; position: absolute; z-index: -1; inset: -28% -12%; background: radial-gradient(closest-side, rgba(16,10,46,.72), rgba(16,10,46,.35) 60%, transparent); border-radius: 50%; }
+.home .motto { text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
+@media (max-width: 639px) { .drape { width: 21vw; } .valance3 { height: 16%; } }
+@media (prefers-reduced-motion: reduce) { .sparkles { animation: none; } .drape { transition: none; } }
+.dicon { object-fit: contain; }
 </style>
-<!-- 3D 무대(three.js). 불러오지 못하면 그림(SVG)이 그대로 보여요 -->
-<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
-<script type="module" src="world3d.js?v=2"></script>
 </head>
 <body>
 
@@ -402,157 +415,14 @@ body { background: var(--midnight); }
   </div>
 
   <section class="scene" id="scene">
-    <!-- 극장 무대 너머의 세계(직접 그린 그림): 동화, 우주, 자연, 과학 -->
-    <svg class="world" viewBox="0 0 1600 720" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#100b30"/><stop offset=".55" stop-color="#2c2068"/><stop offset="1" stop-color="#5b3a92"/></linearGradient>
-        <radialGradient id="nebPink"><stop offset="0" stop-color="#d457d8" stop-opacity=".55"/><stop offset="1" stop-color="#d457d8" stop-opacity="0"/></radialGradient>
-        <radialGradient id="nebBlue"><stop offset="0" stop-color="#4f86f7" stop-opacity=".45"/><stop offset="1" stop-color="#4f86f7" stop-opacity="0"/></radialGradient>
-        <radialGradient id="glow"><stop offset="0" stop-color="#ffe7a3" stop-opacity=".95"/><stop offset=".35" stop-color="#ffc857" stop-opacity=".45"/><stop offset="1" stop-color="#ffc857" stop-opacity="0"/></radialGradient>
-        <radialGradient id="rock" cx=".4" cy=".3"><stop offset="0" stop-color="#9c95c0"/><stop offset="1" stop-color="#433c68"/></radialGradient>
-        <radialGradient id="visor" cx=".35" cy=".3"><stop offset="0" stop-color="#9fd0ff"/><stop offset="1" stop-color="#1d2a66"/></radialGradient>
-        <radialGradient id="planet" cx=".35" cy=".3"><stop offset="0" stop-color="#e2a4ff"/><stop offset="1" stop-color="#5a2e9e"/></radialGradient>
-        <radialGradient id="earth" cx=".35" cy=".3"><stop offset="0" stop-color="#66b2ff"/><stop offset="1" stop-color="#0f3580"/></radialGradient>
-        <radialGradient id="mini" cx=".35" cy=".3"><stop offset="0" stop-color="#ffd28a"/><stop offset="1" stop-color="#d0632a"/></radialGradient>
-        <linearGradient id="trail" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ffc857" stop-opacity="0"/><stop offset=".6" stop-color="#ffd76e" stop-opacity=".8"/><stop offset="1" stop-color="#fff3c4"/></linearGradient>
-        <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#ffb02e"/><stop offset="1" stop-color="#ff5a36" stop-opacity="0"/></linearGradient>
-        <linearGradient id="page" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6e3"/><stop offset="1" stop-color="#f1d9a8"/></linearGradient>
-        <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7b6f0"/><stop offset="1" stop-color="#5d4b9c"/></linearGradient>
-        <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d27a"/><stop offset="1" stop-color="#9a6a1c"/></linearGradient>
-        <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
-      </defs>
-      <rect width="1600" height="720" fill="url(#sky)"/>
-      <ellipse cx="620" cy="250" rx="460" ry="190" fill="url(#nebPink)"/>
-      <ellipse cx="1130" cy="190" rx="420" ry="200" fill="url(#nebBlue)"/>
-      <ellipse cx="820" cy="300" rx="760" ry="70" fill="#fff" opacity=".07" filter="url(#soft)" transform="rotate(-12 820 300)"/>
-      <g id="stars"></g>
-
-      <!-- 작은 토성 -->
-      <g transform="translate(600 120)"><circle r="20" fill="url(#mini)"/><ellipse rx="36" ry="9" fill="none" stroke="#ffe1b0" stroke-width="4" transform="rotate(-18)"/></g>
-
-      <!-- 공룡 -->
-      <g class="dino" transform="translate(0 6)">
-        <path d="M95,520 Q40,515 10,560 Q95,560 160,520 Z" fill="#3f9d4f"/>
-        <path d="M150,420 l14,-26 l10,28 M180,404 l16,-28 l10,30 M210,396 l16,-26 l8,30" fill="#2f7d3d"/>
-        <ellipse cx="190" cy="480" rx="72" ry="84" fill="#4fae5a"/>
-        <ellipse cx="208" cy="500" rx="40" ry="56" fill="#a8d88a"/>
-        <rect x="196" y="330" width="120" height="74" rx="34" fill="#4fae5a"/>
-        <path d="M232,392 h80 q8,0 6,10 q-30,22 -84,8 z" fill="#3f9d4f"/>
-        <path d="M244,392 l6,10 l6,-10 M262,392 l6,10 l6,-10 M280,392 l6,10 l6,-10" fill="#fff"/>
-        <circle cx="282" cy="356" r="12" fill="#fff"/><circle cx="285" cy="356" r="6" fill="#1c2238"/>
-        <path d="M244,440 q18,8 26,26" stroke="#3f9d4f" stroke-width="12" stroke-linecap="round" fill="none"/>
-        <rect x="150" y="540" width="34" height="50" rx="14" fill="#3f9d4f"/><rect x="206" y="540" width="34" height="50" rx="14" fill="#3f9d4f"/>
-      </g>
-
-      <!-- 성 -->
-      <g class="castle">
-        <rect x="300" y="380" width="160" height="200" fill="#f3dcc0"/>
-        <rect x="286" y="300" width="40" height="140" fill="#f7e6d0"/><rect x="434" y="300" width="40" height="140" fill="#f7e6d0"/>
-        <rect x="350" y="236" width="60" height="160" fill="#fbeedd"/>
-        <path d="M280,302 L306,226 L332,302 Z M428,302 L454,226 L480,302 Z" fill="#6d4fc1"/>
-        <path d="M344,238 L380,140 L416,238 Z" fill="#7d5fd6"/>
-        <path d="M306,226 v-24 l18,8 l-18,8 M454,226 v-24 l18,8 l-18,8 M380,140 v-30 l22,10 l-22,10" stroke="#f2c25a" stroke-width="3" fill="#e2345b"/>
-        <rect x="370" y="270" width="20" height="30" rx="10" fill="#ffc857"/><rect x="298" y="340" width="16" height="24" rx="8" fill="#ffc857"/><rect x="446" y="340" width="16" height="24" rx="8" fill="#ffc857"/>
-        <rect x="320" y="420" width="18" height="26" rx="9" fill="#ffc857" opacity=".85"/><rect x="422" y="420" width="18" height="26" rx="9" fill="#ffc857" opacity=".85"/>
-        <path d="M352,580 v-60 a28,28 0 0 1 56,0 v60 z" fill="#5a3d8f"/>
-        <path d="M300,380 h160 v-14 h-160 z M300,366 h16 v-12 h-16 z M332,366 h16 v-12 h-16 z M412,366 h16 v-12 h-16 z M444,366 h16 v-12 h-16 z" fill="#ead0b0"/>
-      </g>
-
-      <!-- 달 위의 우주인 -->
-      <ellipse cx="530" cy="618" rx="170" ry="80" fill="url(#rock)"/>
-      <ellipse cx="480" cy="603" rx="22" ry="9" fill="#3a3460" opacity=".6"/><ellipse cx="580" cy="628" rx="30" ry="11" fill="#3a3460" opacity=".55"/><ellipse cx="540" cy="588" rx="12" ry="5" fill="#3a3460" opacity=".5"/>
-      <g class="astro" transform="translate(520 500)">
-        <rect x="-34" y="-6" width="26" height="46" rx="10" fill="#d9d4ea"/>
-        <rect x="-22" y="-8" width="48" height="56" rx="20" fill="#f6f3fc"/>
-        <path d="M14,34 q32,2 44,22 q4,10 -6,12 l-20,0 q-4,-14 -22,-16 z" fill="#f6f3fc"/>
-        <rect x="40" y="56" width="26" height="14" rx="7" fill="#7b74a8"/>
-        <path d="M22,8 q26,6 28,26" stroke="#f6f3fc" stroke-width="13" stroke-linecap="round" fill="none"/>
-        <circle cx="0" cy="-36" r="34" fill="#f6f3fc" stroke="#c9c3dd" stroke-width="3"/>
-        <circle cx="4" cy="-36" r="23" fill="url(#visor)"/>
-        <ellipse cx="-4" cy="-44" rx="7" ry="4" fill="#fff" opacity=".7"/>
-        <rect x="-10" y="12" width="20" height="12" rx="3" fill="#76bceb"/>
-      </g>
-
-      <!-- 펼친 그림책과 빛 -->
-      <ellipse cx="800" cy="560" rx="260" ry="150" fill="url(#glow)"/>
-      <path class="trailpath" d="M820,560 C880,420 960,300 1062,206" fill="none" stroke="url(#trail)" stroke-width="12" stroke-linecap="round"/>
-      <g class="sparks" fill="#fff3c4">
-        <circle cx="850" cy="500" r="4"/><circle cx="880" cy="440" r="3"/><circle cx="920" cy="380" r="5"/><circle cx="960" cy="320" r="3"/><circle cx="1000" cy="270" r="4"/><circle cx="905" cy="470" r="2.5"/><circle cx="980" cy="360" r="2.5"/>
-      </g>
-      <path d="M800,640 C740,610 670,612 620,632 L620,672 C680,654 744,656 800,684 Z" fill="#7a3b1e"/>
-      <path d="M800,640 C860,610 930,612 980,632 L980,672 C920,654 856,656 800,684 Z" fill="#7a3b1e"/>
-      <path d="M800,628 C742,596 676,598 630,618 L632,660 C690,642 750,646 800,672 Z" fill="url(#page)"/>
-      <path d="M800,628 C858,596 924,598 970,618 L968,660 C910,642 850,646 800,672 Z" fill="url(#page)"/>
-      <path d="M660,624 q60,-12 120,14 M666,640 q56,-10 112,14 M820,638 q60,-26 120,-14 M822,654 q56,-24 112,-14" stroke="#d9b98a" stroke-width="2" fill="none"/>
-
-      <!-- 로켓 -->
-      <g class="rocket"><g transform="translate(1086 186) rotate(42)">
-        <path d="M-15,44 Q0,120 15,44 Z" fill="url(#flame)"/>
-        <path d="M0,-74 C28,-46 30,12 21,46 L-21,46 C-30,12 -28,-46 0,-74 Z" fill="#f6f3fc"/>
-        <path d="M0,-74 C14,-62 22,-48 24,-36 L-24,-36 C-22,-48 -14,-62 0,-74 Z" fill="#e2345b"/>
-        <path d="M-21,18 L-42,52 L-21,44 Z M21,18 L42,52 L21,44 Z" fill="#e2345b"/>
-        <circle cx="0" cy="-8" r="13" fill="url(#visor)" stroke="#c9c3dd" stroke-width="5"/>
-      </g></g>
-
-      <!-- 고리 행성, 지구, 망원경, 책, 원자 -->
-      <g transform="translate(1250 236)">
-        <ellipse rx="112" ry="28" fill="none" stroke="#f0c8ff" stroke-width="8" opacity=".55" transform="rotate(-16)"/>
-        <circle r="62" fill="url(#planet)"/>
-        <path d="M-108,30 A112,28 0 0 0 108,-30" fill="none" stroke="#f6dcff" stroke-width="8" transform="rotate(-16)"/>
-      </g>
-      <g transform="translate(1290 520)">
-        <circle r="128" fill="#76bceb" opacity=".18"/>
-        <circle r="116" fill="url(#earth)"/>
-        <path d="M-70,-50 q30,-30 70,-10 q20,20 -10,34 q-40,6 -60,-24 z M10,20 q40,-10 64,20 q-6,40 -50,40 q-30,-20 -14,-60 z M-90,30 q20,0 26,24 q-20,20 -34,0 z" fill="#5fbf6d"/>
-      </g>
-      <g class="scope">
-        <path d="M1400,470 L1366,566 M1400,470 L1436,566 M1400,470 L1400,566" stroke="#5a4a2a" stroke-width="8" stroke-linecap="round"/>
-        <g transform="translate(1400 456) rotate(-28)"><rect x="-70" y="-16" width="132" height="32" rx="10" fill="url(#brass)"/><rect x="58" y="-21" width="22" height="42" rx="6" fill="#c08a2c"/></g>
-      </g>
-      <g><rect x="1452" y="540" width="120" height="22" rx="4" fill="#b23a3a"/><rect x="1460" y="518" width="104" height="22" rx="4" fill="#2f6f8f"/><rect x="1448" y="496" width="112" height="22" rx="4" fill="#5c8a3a"/><rect x="1470" y="474" width="90" height="22" rx="4" fill="#8a5bb5"/></g>
-      <g transform="translate(1476 320)" fill="none" stroke="#ffc857" stroke-width="4">
-        <ellipse rx="40" ry="14"/><ellipse rx="40" ry="14" transform="rotate(60)"/><ellipse rx="40" ry="14" transform="rotate(120)"/><circle r="7" fill="#ffc857"/>
-      </g>
-
-      <!-- 구름 -->
-      <g fill="url(#cloud)" opacity=".95">
-        <circle cx="40" cy="690" r="110"/><circle cx="180" cy="710" r="90"/><circle cx="300" cy="730" r="80"/>
-        <circle cx="1580" cy="690" r="120"/><circle cx="1440" cy="720" r="90"/><circle cx="1320" cy="740" r="70"/>
-      </g>
-    </svg>
-    <div class="valance2" aria-hidden="true"></div>
-    <svg class="cur left" viewBox="0 0 300 1000" aria-hidden="true">
-        <defs>
-          <linearGradient id="foldL" x1="0" x2="1">
-            <stop offset="0" stop-color="#6e0723"/><stop offset=".18" stop-color="#c3173f"/><stop offset=".32" stop-color="#e2345b"/>
-            <stop offset=".46" stop-color="#a90f3b"/><stop offset=".6" stop-color="#d0224b"/><stop offset=".78" stop-color="#8f0b31"/><stop offset="1" stop-color="#c3173f"/>
-          </linearGradient>
-          <linearGradient id="shadeL" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
-        </defs>
-        <path d="M0,0 H300 C250,190 135,380 96,520 C140,650 205,830 236,1000 H0 Z" fill="url(#foldL)"/>
-        <path d="M0,0 H300 C250,190 135,380 96,520 C140,650 205,830 236,1000 H0 Z" fill="url(#shadeL)"/>
-        <path d="M300,0 C250,190 135,380 96,520 C140,650 205,830 236,1000" fill="none" stroke="#f2c25a" stroke-width="5"/>
-        <path d="M70,505 C95,490 125,495 140,520 C125,545 95,550 70,535" fill="none" stroke="#f2c25a" stroke-width="12" stroke-linecap="round"/>
-        <circle cx="128" cy="528" r="13" fill="#ffc857"/>
-        <path d="M118,540 L112,640 M124,542 L122,650 M130,542 L132,650 M136,540 L142,640" stroke="#e9a913" stroke-width="7" stroke-linecap="round"/>
-        <rect x="108" y="632" width="40" height="12" rx="6" fill="#ffc857"/>
-      </svg>
-    <svg class="cur right" viewBox="0 0 300 1000" aria-hidden="true">
-        <defs>
-          <linearGradient id="foldR" x1="0" x2="1">
-            <stop offset="0" stop-color="#6e0723"/><stop offset=".18" stop-color="#c3173f"/><stop offset=".32" stop-color="#e2345b"/>
-            <stop offset=".46" stop-color="#a90f3b"/><stop offset=".6" stop-color="#d0224b"/><stop offset=".78" stop-color="#8f0b31"/><stop offset="1" stop-color="#c3173f"/>
-          </linearGradient>
-          <linearGradient id="shadeR" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
-        </defs><g transform="translate(300 0) scale(-1 1)">
-        <path d="M0,0 H300 C250,190 135,380 96,520 C140,650 205,830 236,1000 H0 Z" fill="url(#foldR)"/>
-        <path d="M0,0 H300 C250,190 135,380 96,520 C140,650 205,830 236,1000 H0 Z" fill="url(#shadeR)"/>
-        <path d="M300,0 C250,190 135,380 96,520 C140,650 205,830 236,1000" fill="none" stroke="#f2c25a" stroke-width="5"/>
-        <path d="M70,505 C95,490 125,495 140,520 C125,545 95,550 70,535" fill="none" stroke="#f2c25a" stroke-width="12" stroke-linecap="round"/>
-        <circle cx="128" cy="528" r="13" fill="#ffc857"/>
-        <path d="M118,540 L112,640 M124,542 L122,650 M130,542 L132,650 M136,540 L142,640" stroke="#e9a913" stroke-width="7" stroke-linecap="round"/>
-        <rect x="108" y="632" width="40" height="12" rx="6" fill="#ffc857"/>
-      </g></svg>
+    <!-- 무대: 별하늘 → 그림책 세계 → 반짝이 → 구름 → 커튼 (그림은 assets/, 배경 지우기는 tools/cutout.py) -->
+    <div class="sky" aria-hidden="true"></div>
+    <img class="world-img" src="assets/world.webp" alt="" aria-hidden="true">
+    <img class="sparkles" src="assets/sparkles.webp" alt="" aria-hidden="true">
+    <img class="clouds" src="assets/clouds.webp" alt="" aria-hidden="true">
+    <div class="valance3" aria-hidden="true"></div>
+    <img class="drape left" src="assets/curtain-left.webp" alt="" aria-hidden="true">
+    <img class="drape right" src="assets/curtain-right.webp" alt="" aria-hidden="true">
     <div class="title">
       <h1 class="motto" id="motto" lang="en">To infinity<br>and beyond!</h1>
       <p class="motto-ko" id="mottoKo">무한한 공간 저 너머로!</p>
@@ -563,8 +433,8 @@ body { background: var(--midnight); }
     <p class="sub" id="sub"></p>
     <!-- 타이머를 눌러야 시작: 아침 방송(15분, 편성표대로) / 극장(30분, 티켓 3장) -->
     <div class="doors" id="doors">
-      <button class="door" id="goMorning" type="button"><svg class="dicon" viewBox="0 0 120 100" aria-hidden="true"><path d="M60,80 C40,68 18,68 6,74 L6,40 C20,34 42,36 60,48 Z" fill="#fff0d5"/><path d="M60,80 C80,68 102,68 114,74 L114,40 C100,34 78,36 60,48 Z" fill="#f1d9a8"/><path d="M42,46 h36 v-18 h-36 z" fill="#f7e6d0"/><path d="M38,30 L48,10 L58,30 Z M62,30 L72,10 L82,30 Z" fill="#7d5fd6"/><rect x="56" y="34" width="8" height="12" rx="4" fill="#ffc857"/><circle cx="96" cy="20" r="4" fill="#ffc857"/><circle cx="20" cy="26" r="3" fill="#ffc857"/></svg><span class="dtext"><span class="dt">아침 방송</span><span class="dm">15분</span><span class="ds" id="morningInfo"></span></span><span class="chev" aria-hidden="true">›</span></button>
-      <button class="door" id="goTheater" type="button"><svg class="dicon" viewBox="0 0 120 100" aria-hidden="true"><path d="M48,10 h22 v22 l22,46 q4,12 -10,12 h-46 q-14,0 -10,-12 l22,-46 z" fill="#e8f3ff" opacity=".9"/><path d="M34,66 h50 l8,14 q2,10 -10,10 h-46 q-12,0 -10,-10 z" fill="#5fdc7a"/><circle cx="54" cy="74" r="4" fill="#c8ffd2"/><circle cx="66" cy="80" r="3" fill="#c8ffd2"/><g transform="translate(96 30)" fill="none" stroke="#ffc857" stroke-width="3"><ellipse rx="18" ry="7"/><ellipse rx="18" ry="7" transform="rotate(60)"/><ellipse rx="18" ry="7" transform="rotate(120)"/><circle r="3.5" fill="#ffc857"/></g></svg><span class="dtext"><span class="dt">극장</span><span class="dm">30분</span><span class="ds" id="theaterInfo"></span></span><span class="chev" aria-hidden="true">›</span></button>
+      <button class="door" id="goMorning" type="button"><img class="dicon" src="assets/icon-morning.webp" alt="" aria-hidden="true"><span class="dtext"><span class="dt">아침 방송</span><span class="dm">15분</span><span class="ds" id="morningInfo"></span></span><span class="chev" aria-hidden="true">›</span></button>
+      <button class="door" id="goTheater" type="button"><img class="dicon" src="assets/icon-theater.webp" alt="" aria-hidden="true"><span class="dtext"><span class="dt">극장</span><span class="dm">30분</span><span class="ds" id="theaterInfo"></span></span><span class="chev" aria-hidden="true">›</span></button>
     </div>
     <div class="tickets" id="tickets"></div>
     <!-- 도장판: 티켓 3장의 도장 자리. 끝까지 보면 '다 봤어요', 그만두면 '그만 봤어요' -->
@@ -1212,7 +1082,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-23-5";
+const BUILD = "2026-11-23-6";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {
@@ -1224,21 +1094,6 @@ async function checkUpdate() {
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkUpdate(); });
 setInterval(checkUpdate, 10 * 60000);
 
-// 무대의 별: 매번 같은 자리에 뿌리고, 일부만 반짝이게
-(function stars() {
-  const g = document.getElementById("stars"); if (!g) return;
-  let seed = 7; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  let html = "";
-  for (let i = 0; i < 140; i++) {
-    const x = r() * 1600, y = r() * 520, s = r() < .12 ? 2.6 : 0.6 + r() * 1.4;
-    html += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${s.toFixed(1)}" fill="#fff" ${r() < .35 ? `class="tw" style="animation-delay:${(r() * 3).toFixed(1)}s"` : `opacity="${(.4 + r() * .6).toFixed(2)}"`}/>`;
-  }
-  for (let i = 0; i < 9; i++) {   // 반짝이 별
-    const x = r() * 1600, y = 40 + r() * 400, k = 6 + r() * 8;
-    html += `<path class="tw" style="animation-delay:${(r() * 3).toFixed(1)}s" d="M${x},${y - k} Q${x},${y} ${x + k},${y} Q${x},${y} ${x},${y + k} Q${x},${y} ${x - k},${y} Q${x},${y} ${x},${y - k}Z" fill="#fff3c4"/>`;
-  }
-  g.innerHTML = html;
-})();
 // 앱을 켤 때 한 번, 막이 양옆으로 열려요
 (function openCurtains() {
   const h = $("#home"); h.classList.add("closed");

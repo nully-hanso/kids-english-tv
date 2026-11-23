@@ -150,6 +150,8 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   margin: 28px auto 0; display: block; border: 0; border-radius: 999px; cursor: pointer;
   background: var(--bulb); color: var(--ink); font-family: var(--ko); font-size: 21px; padding: 15px 30px;
 }
+.undo { display: block; margin: 20px auto 0; border: 0; background: none; color: var(--dim); font-family: var(--ko); font-size: 16px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; padding: 8px; }
+.pundo { color: var(--muted); margin: 6px auto 0; padding: 4px 8px; flex: none; }
 .foot { text-align: center; color: var(--dim); font-size: 14px; margin: 0; opacity: .8; }
 .foot a { color: var(--dim); }
 @media (orientation: landscape) and (min-width: 700px) {
@@ -264,6 +266,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
     </div>
     <div class="tickets" id="tickets"></div>
     <button class="cta" id="cta" type="button" hidden></button>
+    <button class="undo" id="undo" type="button" hidden>잘못 눌렀나요? 시간 다시 고르기</button>
   </main>
 
   <p class="foot">엄마 아빠가 고른 채널만 나와요 ·
@@ -276,6 +279,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
     <div class="tray" id="tray"></div>
     <button class="ok" id="pOk" type="button" disabled>정했어요</button>
   </div>
+  <button class="undo pundo" id="pUndo" type="button" hidden>잘못 눌렀나요? 시간 다시 고르기</button>
   <nav class="ptabs" id="ptabs" aria-label="묶음"></nav>
   <div class="pbody" id="pbody"></div>
 </div>
@@ -477,6 +481,7 @@ const isQuit = v => !!(v && prog[v.id] && prog[v.id].quit);
 function renderHome(justId) {
   const m = timerEnd ? mode : null;
   $("#home").classList.toggle("idle", !m);
+  $("#undo").hidden = !inGrace();
   $("#doors").hidden = !!m;
   $("#tickets").hidden = m !== "theater";
   if (m !== "theater") {
@@ -563,8 +568,11 @@ $("#tickets").addEventListener("click", e => {
 /* ---------- 고르는 화면 ---------- */
 let ptab = store.get("ptab", "words");
 function openPicker() { if (timeUp || mode !== "theater" || !timerEnd) return; $("#picker").hidden = false; renderPicker(); }
+// 처음 1분 동안 고르는 화면의 '닫기' 옆에 되돌리기 버튼
+setInterval(() => { $("#pUndo").hidden = $("#picker").hidden || !inGrace(); }, 1000);
 function closePicker() { $("#picker").hidden = true; renderHome(); }
 $("#pClose").addEventListener("click", closePicker);
+$("#pUndo").addEventListener("click", () => { if (inGrace()) cancelTimer(); });
 $("#pOk").addEventListener("click", () => {
   if (basket.items.length < 3) return;
   basket.locked = true; saveBasket(); closePicker();
@@ -800,10 +808,18 @@ let timeUp = String(store.get("timeUp", "0")) === "1";
 let timerMin = +store.get("timerMin", 30) || 30;
 let mode = store.get("mode", null);   // "morning" | "theater"
 let wasOn = !!timerEnd;
+/* 잘못 눌렀을 때: 시작하고 1분 안에는 '시간 다시 고르기'로 되돌릴 수 있어요(타이머도 처음 상태로) */
+const GRACE = 60000;
+let timerStart = +store.get("timerStart", 0) || 0;
+const inGrace = () => !!timerEnd && Date.now() - timerStart < GRACE;
+function cancelTimer() {
+  timerEnd = 0; store.set("timerEnd", null);
+  closePlayer(); $("#picker").hidden = true; tick();
+}
 function startTimer(min, m) {
   if (timeUp) return;
-  timerMin = min; mode = m; timerEnd = Date.now() + min * 60000;
-  store.set("timerMin", min); store.set("mode", m); store.set("timerEnd", timerEnd);
+  timerMin = min; mode = m; timerEnd = Date.now() + min * 60000; timerStart = Date.now();
+  store.set("timerMin", min); store.set("mode", m); store.set("timerEnd", timerEnd); store.set("timerStart", timerStart);
   tick();
 }
 function tick() {
@@ -811,6 +827,7 @@ function tick() {
   if (timerEnd && left <= 0) { timerEnd = 0; store.set("timerEnd", null); timeUp = true; store.set("timeUp", "1"); }
   const on = !!timerEnd;
   if (on !== wasOn) { wasOn = on; if (!on) { mode = null; store.set("mode", null); } renderHome(); }
+  if (!$("#undo").hidden && !inGrace()) $("#undo").hidden = true;
   $("#timerRun").hidden = !on;
   if (on) $("#timerText").textContent = mmss(Math.ceil(left / 1000)) + " 남음";
   $("#timePill").hidden = !on;
@@ -822,10 +839,10 @@ function tick() {
   }
 }
 $("#timerRun").addEventListener("click", () => {
-  if (!confirm("타이머를 끌까요?")) return;
-  timerEnd = 0; store.set("timerEnd", null);
-  closePlayer(); $("#picker").hidden = true; tick();
+  if (!inGrace() && !confirm("타이머를 끌까요?")) return;
+  cancelTimer();
 });
+$("#undo").addEventListener("click", () => { if (inGrace()) cancelTimer(); else renderHome(); });
 let holdT = null; const hold = $("#holdBtn");
 hold.addEventListener("pointerdown", e => {
   e.preventDefault(); hold.classList.add("holding");

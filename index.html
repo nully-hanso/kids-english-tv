@@ -389,7 +389,7 @@ body { background: var(--midnight); }
 </style>
 <!-- 3D 무대(three.js). 불러오지 못하면 그림(SVG)이 그대로 보여요 -->
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
-<script type="module" src="world3d.js?v=1"></script>
+<script type="module" src="world3d.js?v=2"></script>
 </head>
 <body>
 
@@ -1212,7 +1212,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-23-4";
+const BUILD = "2026-11-23-5";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {

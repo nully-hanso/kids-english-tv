@@ -88,7 +88,8 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   background: linear-gradient(#ffffff, #e7e9fb); color: var(--ink); border-radius: 10px;
   padding: 40px 16px 34px; box-shadow: 0 0 70px rgba(170,180,255,.35);
 }
-.motto { font-family: var(--ko); font-weight: 400; font-size: clamp(36px, 10.5vw, 54px); line-height: 1.15; text-align: center; margin: 0; letter-spacing: -.5px; }
+.motto-ko { margin: 10px 0 0; text-align: center; font-family: var(--ko); font-size: 16px; color: var(--muted); }
+.motto { font-family: var(--display); font-weight: 600; font-size: clamp(29px, 8.2vw, 54px); line-height: 1.12; text-align: center; margin: 0; letter-spacing: -.5px; }
 .sub { text-align: center; color: var(--dim); font-size: 18px; margin: 30px 0 22px; }
 
 .tickets { display: flex; flex-direction: column; gap: 16px; }
@@ -145,7 +146,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 .door .ds { font-size: 14px; color: var(--dim); text-align: center; line-height: 1.3; min-height: 2.6em; margin-top: 4px; }
 /* 타이머 전에는 막이 반쯤 닫혀 있다가, 누르면 열려요 */
 .theater::before, .theater::after { transition: width .9s cubic-bezier(.5,0,.2,1); }
-.home.idle .theater::before, .home.idle .theater::after { width: 23%; }
+.home.idle .theater::before, .home.idle .theater::after { width: 17%; }
 .stamps { display: flex; justify-content: center; gap: 18px; margin-top: 26px; }
 .spot {
   width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; text-align: center;
@@ -172,6 +173,58 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   .ticket .body { border-left: 0; border-top: 3px dashed var(--line); padding: 10px 18px 14px; }
   .ticket.empty { min-height: 200px; }
   .stamp { top: 34%; right: 50%; transform: translate(50%, -50%) rotate(-14deg); }
+}
+/* 아이패드처럼 큰 화면: 전체를 키우고 가운데에 넉넉히 */
+@media (min-width: 700px) and (min-height: 600px) {
+  .home { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); padding-top: calc(22px + env(safe-area-inset-top, 0px)); }
+  .brand { font-size: 24px; padding: 5px 16px; }
+  .timerbtn { font-size: 19px; padding: 10px 16px; }
+  .center { max-width: min(880px, 100%); padding: 24px 0 32px; }
+  .theater { padding: 0 64px; }
+  .theater::before, .theater::after { width: 60px; }
+  .home.idle .theater::before, .home.idle .theater::after { width: 21%; }
+  .valance { top: -18px; height: 32px; background:
+      radial-gradient(circle at 50% 0, var(--velvet) 16px, transparent 17px) 0 8px / 34px 24px repeat-x,
+      linear-gradient(var(--velvet), var(--velvet)) 0 0 / 100% 12px no-repeat; }
+  .screen { padding: clamp(40px, 7vh, 80px) 24px clamp(34px, 6vh, 64px); border-radius: 14px; }
+  .motto { font-size: clamp(54px, 7vw, 84px); }
+  .motto-ko { font-size: 22px; margin-top: 14px; }
+  .sub { font-size: 22px; margin: 34px 0 24px; }
+  .doors { gap: 24px; }
+  .door { padding: 30px 16px 26px; border-radius: 26px; }
+  .door .dt { font-size: 28px; }
+  .door .dm { font-size: 58px; }
+  .door .ds { font-size: 18px; }
+  .ticket { min-height: 132px; }
+  .ticket .t { font-size: 19px; }
+  .ticket .m { font-size: 16px; }
+  .ticket.empty { font-size: 24px; }
+  .stamp { font-size: 22px; }
+  .stamps { gap: 28px; margin-top: 32px; }
+  .spot { width: 88px; height: 88px; font-size: 16px; }
+  .habit { font-size: 19px; }
+  .cta { font-size: 24px; padding: 18px 38px; }
+  .undo { font-size: 18px; }
+  .foot { font-size: 16px; }
+}
+@media (orientation: portrait) and (min-width: 700px) {
+  .center { max-width: min(720px, 100%); }
+  .ticket .stub { width: 32%; }
+  .home:not(.idle) .screen { padding: 30px 24px 24px; }
+  .home:not(.idle) .motto { font-size: clamp(44px, 6.4vw, 60px); }
+  .home:not(.idle) .sub { margin: 26px 0 18px; }
+}
+@media (orientation: landscape) and (min-width: 700px) and (min-height: 600px) {
+  .center { max-width: min(1000px, 100%); }
+  .ticket.empty { min-height: 200px; }
+  /* 극장이 열리면 스크린을 줄여 티켓과 도장판이 한 화면에 들어오게 */
+  .home:not(.idle) .center { padding-top: 18px; }
+  .home:not(.idle) .screen { padding: 20px 24px 16px; }
+  .home:not(.idle) .motto { font-size: clamp(38px, 4.4vw, 54px); }
+  .home:not(.idle) .motto-ko { font-size: 18px; margin-top: 8px; }
+  .home:not(.idle) .sub { margin: 24px 0 18px; }
+  .home:not(.idle) .ticket .stub { padding: 12px 16px 8px; }
+  .home:not(.idle) .stamps { margin-top: 22px; }
 }
 @media (orientation: landscape) and (max-height: 500px) { .center { padding-top: 22px; } .screen { padding: 18px 16px 14px; } .sub { margin: 20px 0 14px; } }
 
@@ -264,7 +317,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   <main class="center">
     <div class="theater">
       <div class="valance" aria-hidden="true"></div>
-      <div class="screen"><h1 class="motto" id="motto">더 넓은<br>세상으로</h1></div>
+      <div class="screen"><h1 class="motto" id="motto" lang="en">To infinity<br>and beyond!</h1><p class="motto-ko" id="mottoKo">무한한 공간 저 너머로!</p></div>
     </div>
     <p class="sub" id="sub"></p>
     <!-- 타이머를 눌러야 시작: 아침 방송(15분, 편성표대로) / 극장(30분, 티켓 3장) -->
@@ -521,7 +574,8 @@ function renderHome(justId) {
   $("#tickets").hidden = $("#stamps").hidden = $("#habit").hidden = m !== "theater";
   if (m !== "theater") {
     const k = todayKey();
-    $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "더 넓은<br>세상으로";
+    $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "To infinity<br>and beyond!";
+    $("#mottoKo").hidden = m === "morning";
     $("#morningInfo").textContent = epLabel(k, nextEp(k));
     const left = basket.items.filter(v => !isDone(v)).length;
     $("#theaterInfo").textContent = basket.locked && left ? `티켓 ${left}장 남았어요` : "영상 3개 골라 보기";
@@ -529,7 +583,7 @@ function renderHome(justId) {
     $("#cta").hidden = m !== "morning"; $("#cta").textContent = "방송 이어 보기";
     return;
   }
-  $("#motto").innerHTML = "더 넓은<br>세상으로";
+  $("#motto").innerHTML = "To infinity<br>and beyond!"; $("#mottoKo").hidden = false;
   const items = basket.items, doneN = items.filter(isDone).length;
   $("#stamps").innerHTML = [0, 1, 2].map(i => {
     const v = items[i];
@@ -914,6 +968,20 @@ function holdEnd() { clearTimeout(holdT); holdT = null; hold.classList.remove("h
 hold.addEventListener("contextmenu", e => e.preventDefault());
 setInterval(tick, 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+/* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
+   영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
+const BUILD = "2026-11-23-1";
+async function checkUpdate() {
+  if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
+  try {
+    const t = await (await fetch("./?check=" + Date.now(), { cache: "no-store" })).text();
+    const m = t.match(/const BUILD = "([^"]+)"/);
+    if (m && m[1] !== BUILD) location.reload();
+  } catch {}
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkUpdate(); });
+setInterval(checkUpdate, 10 * 60000);
 
 // 예전 버전이 남긴 값 정리
 ["tab", "picks", "watched"].forEach(k => { try { localStorage.removeItem(k); } catch {} });

@@ -88,7 +88,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   background: linear-gradient(#ffffff, #e7e9fb); color: var(--ink); border-radius: 10px;
   padding: 40px 16px 34px; box-shadow: 0 0 70px rgba(170,180,255,.35);
 }
-.motto { font-family: var(--ko); font-weight: 400; font-size: clamp(29px, 8vw, 40px); line-height: 1.25; text-align: center; margin: 0; letter-spacing: -.5px; }
+.motto { font-family: var(--ko); font-weight: 400; font-size: clamp(36px, 10.5vw, 54px); line-height: 1.15; text-align: center; margin: 0; letter-spacing: -.5px; }
 .sub { text-align: center; color: var(--dim); font-size: 18px; margin: 30px 0 22px; }
 
 .tickets { display: flex; flex-direction: column; gap: 16px; }
@@ -146,6 +146,14 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
 /* 타이머 전에는 막이 반쯤 닫혀 있다가, 누르면 열려요 */
 .theater::before, .theater::after { transition: width .9s cubic-bezier(.5,0,.2,1); }
 .home.idle .theater::before, .home.idle .theater::after { width: 23%; }
+.stamps { display: flex; justify-content: center; gap: 18px; margin-top: 26px; }
+.spot {
+  width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; text-align: center;
+  border: 3px dashed rgba(255,255,255,.28); font-family: var(--ko); font-size: 13px; line-height: 1.15; color: var(--dim); white-space: nowrap;
+}
+.spot.done { border: 3px solid var(--coral); color: var(--coral); background: #fff; transform: rotate(-12deg); }
+.spot.quit { border: 3px solid #8a93b3; color: #4b587c; background: #fff; transform: rotate(-12deg); }
+.habit { text-align: center; color: var(--dim); font-size: 15px; margin: 12px 0 0; }
 .cta {
   margin: 28px auto 0; display: block; border: 0; border-radius: 999px; cursor: pointer;
   background: var(--bulb); color: var(--ink); font-family: var(--ko); font-size: 21px; padding: 15px 30px;
@@ -256,7 +264,7 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
   <main class="center">
     <div class="theater">
       <div class="valance" aria-hidden="true"></div>
-      <div class="screen"><h1 class="motto" id="motto">고른 영상은<br>끝까지 봐요</h1></div>
+      <div class="screen"><h1 class="motto" id="motto">더 넓은<br>세상으로</h1></div>
     </div>
     <p class="sub" id="sub"></p>
     <!-- 타이머를 눌러야 시작: 아침 방송(15분, 편성표대로) / 극장(30분, 티켓 3장) -->
@@ -265,6 +273,9 @@ button:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
       <button class="door" id="goTheater" type="button"><span class="dt">극장</span><span class="dm">30분</span><span class="ds" id="theaterInfo"></span></button>
     </div>
     <div class="tickets" id="tickets"></div>
+    <!-- 도장판: 티켓 3장의 도장 자리. 끝까지 보면 '다 봤어요', 그만두면 '그만 봤어요' -->
+    <div class="stamps" id="stamps" hidden></div>
+    <p class="habit" id="habit" hidden>끝까지 보는 습관을 들여요</p>
     <button class="cta" id="cta" type="button" hidden></button>
     <button class="undo" id="undo" type="button" hidden>잘못 눌렀나요? 시간 다시 고르기</button>
   </main>
@@ -507,10 +518,10 @@ function renderHome(justId) {
   $("#home").classList.toggle("idle", !m);
   $("#undo").hidden = !inGrace();
   $("#doors").hidden = !!m;
-  $("#tickets").hidden = m !== "theater";
+  $("#tickets").hidden = $("#stamps").hidden = $("#habit").hidden = m !== "theater";
   if (m !== "theater") {
     const k = todayKey();
-    $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "고른 영상은<br>끝까지 봐요";
+    $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "더 넓은<br>세상으로";
     $("#morningInfo").textContent = epLabel(k, nextEp(k));
     const left = basket.items.filter(v => !isDone(v)).length;
     $("#theaterInfo").textContent = basket.locked && left ? `티켓 ${left}장 남았어요` : "영상 3개 골라 보기";
@@ -518,8 +529,14 @@ function renderHome(justId) {
     $("#cta").hidden = m !== "morning"; $("#cta").textContent = "방송 이어 보기";
     return;
   }
-  $("#motto").innerHTML = "고른 영상은<br>끝까지 봐요";
+  $("#motto").innerHTML = "더 넓은<br>세상으로";
   const items = basket.items, doneN = items.filter(isDone).length;
+  $("#stamps").innerHTML = [0, 1, 2].map(i => {
+    const v = items[i];
+    if (isQuit(v)) return '<span class="spot quit">그만<br>봤어요</span>';
+    if (isDone(v)) return '<span class="spot done">다<br>봤어요</span>';
+    return '<span class="spot" aria-label="빈 도장 자리"></span>';
+  }).join("");
   $("#tickets").innerHTML = [0, 1, 2].map(i => {
     const v = items[i];
     if (!v) return `<button class="ticket empty" type="button" data-i="${i}">골라 담기</button>`;

@@ -1,39 +1,52 @@
 {
   "phone": {
     "maxWidth": 1180,
+    "order": [
+      "book",
+      "sparkles",
+      "worldL",
+      "worldR",
+      "cloudsL",
+      "cloudsR",
+      "fade",
+      "drapeL",
+      "drapeR",
+      "valance",
+      "title"
+    ],
     "layers": {
       "valance": {
         "h": 24,
-        "y": 0
+        "y": -10
       },
       "worldL": {
         "anchor": "lb",
-        "x": 17,
-        "y": -10,
-        "h": 70
+        "x": -5,
+        "y": -8,
+        "h": 58
       },
       "worldR": {
         "anchor": "rb",
-        "x": -17,
-        "y": -10,
-        "h": 78
+        "x": 3,
+        "y": -2,
+        "h": 65
       },
       "sparkles": {
         "anchor": "ct",
         "x": 0,
         "y": 2,
         "h": 72,
-        "o": 0.7
+        "o": 0.5
       },
       "cloudsL": {
         "anchor": "lb",
-        "x": 0,
+        "x": -40,
         "y": 6,
         "h": 58
       },
       "cloudsR": {
         "anchor": "rb",
-        "x": 0,
+        "x": 40,
         "y": 6,
         "h": 58
       },
@@ -45,70 +58,84 @@
       },
       "drapeL": {
         "anchor": "lt",
-        "x": -12,
+        "x": -18,
         "y": 0,
         "h": 100
       },
       "drapeR": {
         "anchor": "rt",
-        "x": 12,
+        "x": 20,
         "y": 0,
         "h": 100
       },
       "title": {
         "anchor": "ct",
-        "x": 0,
-        "y": 24
-      }
+        "x": -0.1,
+        "y": 21
+      },
+      "fade": {}
     }
   },
   "tabletP": {
     "maxWidth": 1180,
+    "order": [
+      "book",
+      "sparkles",
+      "worldL",
+      "worldR",
+      "cloudsL",
+      "cloudsR",
+      "fade",
+      "drapeL",
+      "drapeR",
+      "valance",
+      "title"
+    ],
     "layers": {
       "valance": {
         "h": 24,
-        "y": 0
+        "y": -4
       },
       "worldL": {
         "anchor": "lb",
-        "x": 17,
-        "y": -10,
-        "h": 70
+        "x": 5,
+        "y": -12,
+        "h": 60
       },
       "worldR": {
         "anchor": "rb",
-        "x": -17,
-        "y": -10,
-        "h": 78
+        "x": -11.5,
+        "y": -6,
+        "h": 60
       },
       "sparkles": {
         "anchor": "ct",
         "x": 0,
-        "y": 2,
-        "h": 72,
-        "o": 0.7
+        "y": -16,
+        "h": 87,
+        "o": 0.5
       },
       "cloudsL": {
         "anchor": "lb",
-        "x": 0,
+        "x": -20,
         "y": 6,
-        "h": 58
+        "h": 55
       },
       "cloudsR": {
         "anchor": "rb",
-        "x": 0,
+        "x": 28,
         "y": 6,
         "h": 58
       },
       "book": {
         "anchor": "cb",
         "x": 0,
-        "y": -2,
-        "h": 44
+        "y": -8,
+        "h": 50
       },
       "drapeL": {
         "anchor": "lt",
-        "x": 0,
+        "x": -6,
         "y": 0,
         "h": 100
       },
@@ -121,12 +148,27 @@
       "title": {
         "anchor": "ct",
         "x": 0,
-        "y": 24
-      }
+        "y": 26,
+        "h": 50
+      },
+      "fade": {}
     }
   },
   "tabletL": {
     "maxWidth": 1180,
+    "order": [
+      "book",
+      "sparkles",
+      "worldL",
+      "worldR",
+      "cloudsL",
+      "cloudsR",
+      "fade",
+      "drapeL",
+      "drapeR",
+      "valance",
+      "title"
+    ],
     "layers": {
       "valance": {
         "h": 24,
@@ -134,22 +176,22 @@
       },
       "worldL": {
         "anchor": "lb",
-        "x": 17,
-        "y": -10,
+        "x": 45,
+        "y": 2,
         "h": 70
       },
       "worldR": {
         "anchor": "rb",
-        "x": -17,
-        "y": -10,
+        "x": -46.5,
+        "y": 12.2,
         "h": 78
       },
       "sparkles": {
         "anchor": "ct",
         "x": 0,
-        "y": 2,
-        "h": 72,
-        "o": 0.7
+        "y": -28.7,
+        "h": 114,
+        "o": 0.5
       },
       "cloudsL": {
         "anchor": "lb",
@@ -166,71 +208,85 @@
       "book": {
         "anchor": "cb",
         "x": 0,
-        "y": -2,
-        "h": 44
+        "y": 6,
+        "h": 60
       },
       "drapeL": {
         "anchor": "lt",
-        "x": 0,
+        "x": 34,
         "y": 0,
         "h": 100
       },
       "drapeR": {
         "anchor": "rt",
-        "x": 0,
-        "y": 0,
+        "x": -34,
+        "y": 0.1,
         "h": 100
       },
       "title": {
         "anchor": "ct",
         "x": 0,
         "y": 24
-      }
+      },
+      "fade": {}
     }
   },
   "wide": {
     "maxWidth": 1180,
+    "order": [
+      "book",
+      "sparkles",
+      "worldL",
+      "worldR",
+      "cloudsL",
+      "cloudsR",
+      "fade",
+      "drapeL",
+      "drapeR",
+      "valance",
+      "title"
+    ],
     "layers": {
       "valance": {
         "h": 24,
-        "y": 0
+        "y": -12
       },
       "worldL": {
         "anchor": "lb",
-        "x": 17,
-        "y": -10,
-        "h": 70
+        "x": 10.5,
+        "y": -0.5,
+        "h": 95
       },
       "worldR": {
         "anchor": "rb",
-        "x": -17,
-        "y": -10,
-        "h": 78
+        "x": -11,
+        "y": 18,
+        "h": 120
       },
       "sparkles": {
         "anchor": "ct",
         "x": 0,
-        "y": 2,
-        "h": 72,
-        "o": 0.7
+        "y": -56,
+        "h": 137,
+        "o": 0.4
       },
       "cloudsL": {
         "anchor": "lb",
-        "x": 0,
-        "y": 6,
+        "x": 2,
+        "y": 14,
         "h": 58
       },
       "cloudsR": {
         "anchor": "rb",
         "x": 0,
-        "y": 6,
+        "y": 16,
         "h": 58
       },
       "book": {
         "anchor": "cb",
         "x": 0,
-        "y": -2,
-        "h": 44
+        "y": 12.5,
+        "h": 77
       },
       "drapeL": {
         "anchor": "lt",
@@ -247,8 +303,9 @@
       "title": {
         "anchor": "ct",
         "x": 0,
-        "y": 24
-      }
+        "y": 20
+      },
+      "fade": {}
     }
   }
 }

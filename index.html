@@ -405,10 +405,12 @@ body { background: var(--midnight); }
     <!-- 무대: 위치와 크기는 stage.json(배치 도구: tools/stage-editor.html), 그림은 assets/(tools/make_assets.py) -->
     <div class="sky" aria-hidden="true"></div>
     <div class="stage-frame">
-      <img class="world-img" data-layer="world" src="assets/world.webp" alt="" aria-hidden="true">
+      <img class="world-img left" data-layer="worldL" src="assets/world-left.webp" alt="" aria-hidden="true">
+      <img class="world-img right" data-layer="worldR" src="assets/world-right.webp" alt="" aria-hidden="true">
       <img class="sparkles" data-layer="sparkles" src="assets/sparkles.webp" alt="" aria-hidden="true">
       <img class="clouds left" data-layer="cloudsL" src="assets/clouds-left.webp" alt="" aria-hidden="true">
       <img class="clouds right" data-layer="cloudsR" src="assets/clouds-right.webp" alt="" aria-hidden="true">
+      <img class="book" data-layer="book" src="assets/book.webp" alt="" aria-hidden="true">
       <img class="drape left" data-layer="drapeL" src="assets/curtain-left.webp" alt="" aria-hidden="true">
       <img class="drape right" data-layer="drapeR" src="assets/curtain-right.webp" alt="" aria-hidden="true">
       <div class="title" data-layer="title">
@@ -1072,7 +1074,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-24-3";
+const BUILD = "2026-11-24-4";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {

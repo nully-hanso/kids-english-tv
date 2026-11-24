@@ -7,7 +7,8 @@ from functools import partial
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8766
-LAYERS = {"valance", "world", "sparkles", "cloudsL", "cloudsR", "drapeL", "drapeR", "title"}
+LAYERS = {"valance", "worldL", "worldR", "sparkles", "cloudsL", "cloudsR", "book", "drapeL", "drapeR", "title"}
+SIZES = {"phone", "tabletP", "tabletL", "wide"}
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -20,7 +21,9 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_error(404)
         try:
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
-            assert isinstance(data.get("maxWidth"), (int, float)) and set(data["layers"]) <= LAYERS
+            assert data and set(data) <= SIZES
+            for one in data.values():
+                assert isinstance(one.get("maxWidth"), (int, float)) and set(one["layers"]) <= LAYERS
         except Exception:
             return self.send_error(400, "배치 형식이 맞지 않아요")
         with open(os.path.join(ROOT, "stage.json"), "w", encoding="utf-8") as f:

@@ -1,51 +1,254 @@
 {
-  "maxWidth": 1180,
-  "layers": {
-    "valance": {
-      "h": 24,
-      "y": 0
-    },
-    "world": {
-      "anchor": "cb",
-      "x": 0,
-      "y": 0,
-      "h": 86
-    },
-    "sparkles": {
-      "anchor": "ct",
-      "x": 0,
-      "y": 2,
-      "h": 72,
-      "o": 0.7
-    },
-    "cloudsL": {
-      "anchor": "lb",
-      "x": 0,
-      "y": 6,
-      "h": 58
-    },
-    "cloudsR": {
-      "anchor": "rb",
-      "x": 0,
-      "y": 6,
-      "h": 58
-    },
-    "drapeL": {
-      "anchor": "lt",
-      "x": 0,
-      "y": 0,
-      "h": 100
-    },
-    "drapeR": {
-      "anchor": "rt",
-      "x": 0,
-      "y": 0,
-      "h": 100
-    },
-    "title": {
-      "anchor": "ct",
-      "x": 0,
-      "y": 24
+  "phone": {
+    "maxWidth": 1180,
+    "layers": {
+      "valance": {
+        "h": 24,
+        "y": 0
+      },
+      "worldL": {
+        "anchor": "lb",
+        "x": 17,
+        "y": -10,
+        "h": 70
+      },
+      "worldR": {
+        "anchor": "rb",
+        "x": -17,
+        "y": -10,
+        "h": 78
+      },
+      "sparkles": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 2,
+        "h": 72,
+        "o": 0.7
+      },
+      "cloudsL": {
+        "anchor": "lb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "cloudsR": {
+        "anchor": "rb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "book": {
+        "anchor": "cb",
+        "x": 0,
+        "y": -2,
+        "h": 44
+      },
+      "drapeL": {
+        "anchor": "lt",
+        "x": -12,
+        "y": 0,
+        "h": 100
+      },
+      "drapeR": {
+        "anchor": "rt",
+        "x": 12,
+        "y": 0,
+        "h": 100
+      },
+      "title": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 24
+      }
+    }
+  },
+  "tabletP": {
+    "maxWidth": 1180,
+    "layers": {
+      "valance": {
+        "h": 24,
+        "y": 0
+      },
+      "worldL": {
+        "anchor": "lb",
+        "x": 17,
+        "y": -10,
+        "h": 70
+      },
+      "worldR": {
+        "anchor": "rb",
+        "x": -17,
+        "y": -10,
+        "h": 78
+      },
+      "sparkles": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 2,
+        "h": 72,
+        "o": 0.7
+      },
+      "cloudsL": {
+        "anchor": "lb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "cloudsR": {
+        "anchor": "rb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "book": {
+        "anchor": "cb",
+        "x": 0,
+        "y": -2,
+        "h": 44
+      },
+      "drapeL": {
+        "anchor": "lt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "drapeR": {
+        "anchor": "rt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "title": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 24
+      }
+    }
+  },
+  "tabletL": {
+    "maxWidth": 1180,
+    "layers": {
+      "valance": {
+        "h": 24,
+        "y": 0
+      },
+      "worldL": {
+        "anchor": "lb",
+        "x": 17,
+        "y": -10,
+        "h": 70
+      },
+      "worldR": {
+        "anchor": "rb",
+        "x": -17,
+        "y": -10,
+        "h": 78
+      },
+      "sparkles": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 2,
+        "h": 72,
+        "o": 0.7
+      },
+      "cloudsL": {
+        "anchor": "lb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "cloudsR": {
+        "anchor": "rb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "book": {
+        "anchor": "cb",
+        "x": 0,
+        "y": -2,
+        "h": 44
+      },
+      "drapeL": {
+        "anchor": "lt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "drapeR": {
+        "anchor": "rt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "title": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 24
+      }
+    }
+  },
+  "wide": {
+    "maxWidth": 1180,
+    "layers": {
+      "valance": {
+        "h": 24,
+        "y": 0
+      },
+      "worldL": {
+        "anchor": "lb",
+        "x": 17,
+        "y": -10,
+        "h": 70
+      },
+      "worldR": {
+        "anchor": "rb",
+        "x": -17,
+        "y": -10,
+        "h": 78
+      },
+      "sparkles": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 2,
+        "h": 72,
+        "o": 0.7
+      },
+      "cloudsL": {
+        "anchor": "lb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "cloudsR": {
+        "anchor": "rb",
+        "x": 0,
+        "y": 6,
+        "h": 58
+      },
+      "book": {
+        "anchor": "cb",
+        "x": 0,
+        "y": -2,
+        "h": 44
+      },
+      "drapeL": {
+        "anchor": "lt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "drapeR": {
+        "anchor": "rt",
+        "x": 0,
+        "y": 0,
+        "h": 100
+      },
+      "title": {
+        "anchor": "ct",
+        "x": 0,
+        "y": 24
+      }
     }
   }
 }

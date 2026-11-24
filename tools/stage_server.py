@@ -7,7 +7,7 @@ from functools import partial
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8766
-LAYERS = {"valance", "world", "sparkles", "clouds", "drapeL", "drapeR", "title"}
+LAYERS = {"valance", "world", "sparkles", "cloudsL", "cloudsR", "drapeL", "drapeR", "title"}
 
 
 class Handler(SimpleHTTPRequestHandler):

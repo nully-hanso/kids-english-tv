@@ -18,8 +18,14 @@
       "h": 72,
       "o": 0.7
     },
-    "clouds": {
-      "anchor": "cb",
+    "cloudsL": {
+      "anchor": "lb",
+      "x": 0,
+      "y": 6,
+      "h": 58
+    },
+    "cloudsR": {
+      "anchor": "rb",
       "x": 0,
       "y": 6,
       "h": 58

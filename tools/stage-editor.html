@@ -68,7 +68,8 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
       <div class="stage-frame">
         <img class="world-img" data-layer="world" src="../assets/world.webp" alt="그림책 세계">
         <img class="sparkles" data-layer="sparkles" src="../assets/sparkles.webp" alt="반짝이">
-        <img class="clouds" data-layer="clouds" src="../assets/clouds.webp" alt="구름">
+        <img class="clouds left" data-layer="cloudsL" src="../assets/clouds-left.webp" alt="왼쪽 구름">
+        <img class="clouds right" data-layer="cloudsR" src="../assets/clouds-right.webp" alt="오른쪽 구름">
         <img class="drape left" data-layer="drapeL" src="../assets/curtain-left.webp" alt="왼쪽 커튼">
         <img class="drape right" data-layer="drapeR" src="../assets/curtain-right.webp" alt="오른쪽 커튼">
         <div class="title" data-layer="title">
@@ -122,7 +123,7 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
 <script src="../stage.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const NAMES = { valance: "천장 커튼", world: "그림책 세계", sparkles: "반짝이", clouds: "구름", drapeL: "왼쪽 커튼", drapeR: "오른쪽 커튼", title: "글자" };
+const NAMES = { valance: "천장 커튼", world: "그림책 세계", sparkles: "반짝이", cloudsL: "왼쪽 구름", cloudsR: "오른쪽 구름", drapeL: "왼쪽 커튼", drapeR: "오른쪽 커튼", title: "글자" };
 // 실제 앱에서의 무대 높이: 기본 clamp(340, 62vh, 660), 폭 640 미만 clamp(320, 46vh, 420), 극장 화면 clamp(210, 30vh, 320)
 const DEVICES = [
   { name: "아이폰", w: 390, vh: 844 },

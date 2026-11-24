@@ -74,7 +74,19 @@ t = v[:H, X0:X0 + P].copy()
 wgt = (np.arange(FW) / FW)[None, :, None]
 t[:, :FW] = v[:H, X0:X0 + FW] * wgt + v[:H, X0 + P:X0 + P + FW] * (1 - wgt)
 save(Image.fromarray(t.astype(np.uint8), "RGBA"), "valance.webp", 600)
-save(trim(src("clouds")), "clouds.webp", 1800)
+# 구름: 커튼처럼 좌우로 나눠 각각 그림이 있는 부분만
+cl = src("clouds"); w, h = cl.size
+def fade_inner(img, side, frac=.16):
+    """가운데 쪽 끝(무대 바닥이 잘린 곳)을 부드럽게 사라지게"""
+    a = np.asarray(img).astype(np.float32).copy()
+    x = np.linspace(0, 1, a.shape[1])
+    ramp = np.clip((1 - x if side == "right" else x) / frac, 0, 1)   # side: 흐리게 할 쪽
+    a[..., 3] *= ramp[None, :]
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+save(trim(fade_inner(cl.crop((0, 0, w // 2, h)), "right")), "clouds-left.webp", 1000)
+save(trim(fade_inner(cl.crop((w // 2, 0, w, h)), "left")), "clouds-right.webp", 1000)
 save(trim(src("light_effects")), "sparkles.webp", 1400)
 save(trim(src("castle")), "icon-morning.webp", 360)
 save(trim(src("flask")), "icon-theater.webp", 360)

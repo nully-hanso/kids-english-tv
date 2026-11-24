@@ -120,7 +120,8 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
 
   <section class="actions">
     <div id="editing" class="help"></div>
-    <button class="primary" id="save">저장</button>
+    <button class="primary" id="save">지금 저장</button>
+    <p class="help">바꾸면 자동으로 저장돼요.</p>
     <button id="reload">저장된 배치 다시 불러오기</button>
     <button id="copyAll">이 배치를 다른 규격에도 넣기</button>
     <button id="reset">이 규격만 처음 배치로</button>
@@ -302,7 +303,19 @@ scene.querySelectorAll("img").forEach(i => i.addEventListener("load", mark));
 
 // 저장
 let changed = false;
-function dirty() { changed = true; status("저장하지 않은 변경이 있어요"); }
+// 자동 저장: 바꾸고 0.7초 동안 손을 멈추면 stage.json에 저장
+let saveTimer = 0;
+function dirty() { changed = true; status("저장하는 중…"); clearTimeout(saveTimer); saveTimer = setTimeout(autoSave, 700); }
+async function put() {
+  const r = await fetch("../stage.json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(clean(), null, 2) + "\n" });
+  if (!r.ok) throw new Error(r.status);
+}
+async function autoSave() {
+  try {
+    await put(); changed = false;
+    status(`자동 저장했어요 (${new Date().toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit", second: "2-digit" })}). 집 화면에 반영하려면 Claude에게 배포해 달라고 해 주세요.`);
+  } catch { status("자동 저장이 안 돼요. 저장 버튼을 누르면 stage.json 파일로 내려받아요."); }
+}
 function status(t) { $("#status").textContent = t; }
 function cleanOne(c) {
   const out = { maxWidth: Math.round(c.maxWidth), order: [...c.order], layers: {} };
@@ -314,6 +327,7 @@ function cleanOne(c) {
 }
 function clean() { const out = {}; for (const s of Stage.SIZES) out[s.key] = cleanOne(all[s.key]); return out; }
 $("#save").onclick = async () => {
+  clearTimeout(saveTimer);
   const body = JSON.stringify(clean(), null, 2) + "\n";
   try {
     const r = await fetch("../stage.json", { method: "PUT", headers: { "Content-Type": "application/json" }, body });

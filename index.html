@@ -384,22 +384,20 @@ body { background: var(--midnight); }
 @media (orientation: landscape) and (max-height: 500px) { .scene { height: 62vh; } .home .doors { margin-top: -18px; } }
 @media (prefers-reduced-motion: reduce) { .tw, .rocket, .sparks { animation: none; } .cur { transition: none; } }
 /* ===== 그림 무대(2026-11-23): 별하늘 + 그림책 세계 + 구름 + 벨벳 커튼 ===== */
-.scene .sky { position: absolute; inset: 0; background: #120d38 url(assets/sky.webp) center / cover no-repeat; }
-.world-img { position: absolute; left: 50%; bottom: 0; height: 92%; width: auto; max-width: none; transform: translateX(-50%); }
-.sparkles { position: absolute; left: 50%; top: 2%; width: min(92%, 1000px); transform: translateX(-50%); opacity: .55; mix-blend-mode: screen; pointer-events: none; animation: drift 9s ease-in-out infinite; }
-@keyframes drift { 50% { transform: translateX(-50%) translateY(-8px); opacity: .75; } }
-.clouds { position: absolute; left: 0; bottom: -4%; width: 100%; height: 34%; object-fit: cover; object-position: center bottom; pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, #000 0 24%, transparent 40% 60%, #000 76% 100%); mask-image: linear-gradient(90deg, #000 0 24%, transparent 40% 60%, #000 76% 100%); }
-.valance3 { position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 21%; background: url(assets/valance.webp) center top / auto 100% repeat-x; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+.scene .sky { position: absolute; inset: 0; background: url(assets/world.webp) center bottom / auto 86% no-repeat, #120d38 url(assets/sky.webp) center bottom / cover no-repeat; }
+.sparkles { position: absolute; left: 50%; top: 2%; width: min(92%, 1000px); transform: translateX(-50%); opacity: .7; pointer-events: none; animation: drift 9s ease-in-out infinite; }
+@keyframes drift { 50% { transform: translateX(-50%) translateY(-8px); opacity: .95; } }
+.clouds { position: absolute; left: 0; bottom: -4%; width: 100%; height: 34%; object-fit: cover; object-position: center bottom; pointer-events: none; }
+.valance3 { position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: min(30.7vw, 24%); background: url(assets/valance.webp) center top / 100% 100% no-repeat; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
 .drape { position: absolute; z-index: 3; top: 0; height: 100%; width: clamp(110px, 19vw, 250px); max-width: none; object-fit: cover; transition: transform 1.6s cubic-bezier(.6,0,.2,1); filter: drop-shadow(0 0 14px rgba(0,0,0,.5)); }
 .drape.left { left: 0; transform-origin: left center; object-position: left top; }
 .drape.right { right: 0; transform-origin: right center; object-position: right top; }
 .home.closed .drape { transform: scaleX(2.3); }
 .scene::after { height: 18%; z-index: 1; }
-.title { z-index: 4; top: 20%; }
+.title { z-index: 5; top: 24%; }
 .title::before { content: ""; position: absolute; z-index: -1; inset: -28% -12%; background: radial-gradient(closest-side, rgba(16,10,46,.72), rgba(16,10,46,.35) 60%, transparent); border-radius: 50%; }
 .home .motto { text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
-@media (max-width: 639px) { .drape { width: 21vw; } .valance3 { height: 16%; } }
+@media (max-width: 639px) { .drape { width: 21vw; } }
 @media (prefers-reduced-motion: reduce) { .sparkles { animation: none; } .drape { transition: none; } }
 .dicon { object-fit: contain; }
 </style>
@@ -415,9 +413,8 @@ body { background: var(--midnight); }
   </div>
 
   <section class="scene" id="scene">
-    <!-- 무대: 별하늘 → 그림책 세계 → 반짝이 → 구름 → 커튼 (그림은 assets/, 배경 지우기는 tools/cutout.py) -->
+    <!-- 무대: 우주 배경 + 그림책 세계 → 반짝이 → 구름 → 커튼 (그림은 assets/, generate_imgs에서 tools/make_assets.py로 만듦) -->
     <div class="sky" aria-hidden="true"></div>
-    <img class="world-img" src="assets/world.webp" alt="" aria-hidden="true">
     <img class="sparkles" src="assets/sparkles.webp" alt="" aria-hidden="true">
     <img class="clouds" src="assets/clouds.webp" alt="" aria-hidden="true">
     <div class="valance3" aria-hidden="true"></div>
@@ -1082,7 +1079,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-23-6";
+const BUILD = "2026-11-24-1";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {

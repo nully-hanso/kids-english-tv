@@ -1,4 +1,5 @@
 /* 무대 그림 공통 모양(첫 화면과 배치 도구가 함께 씀). 위치·크기는 stage.js가 stage.json대로 정해요. */
+.scene { isolation: isolate; }   /* 무대 그림 순서가 아래 카드 위로 올라오지 않게 */
 .scene .sky { position: absolute; inset: 0; background: #120d38 url(assets/sky.webp) center bottom / cover no-repeat; }
 .stage-frame { position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto; }
 .stage-frame > img { position: absolute; max-width: none; display: block; }
@@ -10,5 +11,6 @@
 .scene .drape.left { transform-origin: left center; }
 .scene .drape.right { transform-origin: right center; }
 .home.closed .drape { transform: scaleX(2.3); }
+.stage-fade { position: absolute; left: 0; right: 0; bottom: -1px; height: 18%; background: linear-gradient(transparent, var(--midnight, #17132f)); pointer-events: none; }
 .scene .title { position: absolute; z-index: 5; transform: rotate(-5deg); width: min(86%, 760px); text-align: center; }
 @media (prefers-reduced-motion: reduce) { .scene .sparkles { animation: none; } .scene .drape { transition: none; } }

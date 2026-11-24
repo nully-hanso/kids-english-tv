@@ -312,7 +312,6 @@ body { background: var(--midnight); }
 .home .center { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-top: 0; justify-content: flex-start; max-width: 920px; }
 .scene { position: relative; height: clamp(340px, 62vh, 660px); overflow: hidden; transition: height .5s ease; }
 .world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.scene::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 34%; background: linear-gradient(transparent, var(--midnight)); pointer-events: none; }
 .valance2 { position: absolute; z-index: 3; left: 0; right: 0; top: 0; height: 58px;
   background:
     radial-gradient(ellipse 50% 100% at 50% 0, #c3173f 0 55%, #8b0c30 70%, transparent 71%) 0 0 / 150px 58px repeat-x,
@@ -383,7 +382,6 @@ body { background: var(--midnight); }
 }
 @media (orientation: landscape) and (max-height: 500px) { .scene { height: 62vh; } .home .doors { margin-top: -18px; } }
 @media (prefers-reduced-motion: reduce) { .tw, .rocket, .sparks { animation: none; } .cur { transition: none; } }
-.scene::after { height: 18%; z-index: 1; }
 .title::before { content: ""; position: absolute; z-index: -1; inset: -28% -12%; background: radial-gradient(closest-side, rgba(16,10,46,.72), rgba(16,10,46,.35) 60%, transparent); border-radius: 50%; }
 .home .motto { text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
 .dicon { object-fit: contain; }
@@ -419,6 +417,7 @@ body { background: var(--midnight); }
       </div>
     </div>
     <div class="valance3" data-layer="valance" aria-hidden="true"></div>
+    <div class="stage-fade" data-layer="fade" aria-hidden="true"></div>
   </section>
 
   <main class="center">
@@ -1074,7 +1073,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-24-4";
+const BUILD = "2026-11-24-5";
 async function checkUpdate() {
   if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
   try {

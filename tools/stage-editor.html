@@ -26,19 +26,22 @@ input[type=range] { accent-color: var(--gold); }
 #stageWrap { position: relative; overflow: auto; padding: 24px; display: flex; align-items: flex-start; justify-content: center; }
 #fit { position: relative; flex: none; }
 #scene { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; background: #120d38; box-shadow: 0 0 0 1px var(--line), 0 20px 50px rgba(0,0,0,.5); touch-action: none; }
-#scene::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 18%; z-index: 1; background: linear-gradient(transparent, var(--midnight)); pointer-events: none; }
 #scene [data-layer] { pointer-events: auto; cursor: grab; user-select: none; -webkit-user-drag: none; }
 #scene.dragging, #scene.dragging [data-layer] { cursor: grabbing; }
 .stage-frame::before { content: ""; position: absolute; inset: 0; z-index: 8; border-left: 2px dashed rgba(255,200,87,.6); border-right: 2px dashed rgba(255,200,87,.6); pointer-events: none; }
 .title { pointer-events: auto; }
 .motto { margin: 0; color: var(--cream); font-family: "Fredoka", sans-serif; font-weight: 700; line-height: 1.02; text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
 .motto-ko { margin: 10px 0 0; color: var(--gold); font-family: "Jua", sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
-#sel { position: absolute; z-index: 20; outline: 2px solid var(--gold); outline-offset: -1px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(10,6,30,.25); }
-#pins { position: absolute; inset: 0; z-index: 21; pointer-events: none; overflow: visible; }
+#scene .stage-fade { pointer-events: none; }
+#sel { position: absolute; z-index: 100; outline: 2px solid var(--gold); outline-offset: -1px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(10,6,30,.25); }
+#pins { position: absolute; inset: 0; z-index: 101; pointer-events: none; overflow: visible; }
 aside { border-left: 1px solid var(--line); background: var(--panel); padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
 aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8px; }
 .layers { display: grid; gap: 4px; }
-.layers button { text-align: left; display: flex; justify-content: space-between; }
+.layers .li { display: grid; grid-template-columns: 1fr 34px 34px; gap: 4px; }
+.layers .li > button { text-align: left; display: flex; justify-content: space-between; }
+.layers .li .mv { padding: 0; text-align: center; justify-content: center; }
+.layers .li .mv:disabled { opacity: .3; cursor: default; }
 .layers button small { color: inherit; opacity: .7; }
 .grid9 { display: grid; grid-template-columns: repeat(3, 40px); gap: 4px; }
 .grid9 button { height: 40px; padding: 0; font-size: 18px; }
@@ -80,6 +83,7 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
         </div>
       </div>
       <div class="valance3" data-layer="valance"></div>
+      <div class="stage-fade" data-layer="fade"></div>
       <div id="sel" hidden></div>
       <svg id="pins" aria-hidden="true"></svg>
     </section>
@@ -90,7 +94,7 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
   <section>
     <h2>그림 고르기</h2>
     <div class="layers" id="layers"></div>
-    <p class="help">위쪽 버튼으로 고른 규격의 배치만 바뀌어요. 무대에서 그림을 끌어 옮겨요. 겹친 그림은 여기서 고르고, 화살표 키로 조금씩(Shift는 크게) 옮길 수 있어요.</p>
+    <p class="help">목록 위쪽에 있을수록 앞에 보여요. ▲▼로 순서를 바꿔요. 위쪽 버튼으로 고른 규격의 배치만 바뀌어요. 무대에서 그림을 끌어 옮겨요. 겹친 그림은 여기서 고르고, 화살표 키로 조금씩(Shift는 크게) 옮길 수 있어요.</p>
   </section>
 
   <section id="props">
@@ -103,7 +107,7 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
     </div>
     <div class="row" id="sizeRow"><span>크기</span><input type="range" id="hr" min="5" max="200" step="1"><input type="number" id="hn" step="1"></div>
     <div class="row" id="xRow"><span>가로</span><input type="number" id="x" step=".5"><small class="help">높이의 %</small></div>
-    <div class="row"><span>세로</span><input type="number" id="y" step=".5"><small class="help">높이의 %</small></div>
+    <div class="row" id="yRow"><span>세로</span><input type="number" id="y" step=".5"><small class="help">높이의 %</small></div>
     <div class="row"><span>불투명도</span><input type="range" id="o" min="0" max="1" step=".05"></div>
     <div class="row"><span>보이기</span><input type="checkbox" id="vis"></div>
   </section>
@@ -127,7 +131,7 @@ aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8p
 <script src="../stage.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const NAMES = { valance: "천장 커튼", worldL: "성 쪽 세계", worldR: "우주 쪽 세계", sparkles: "반짝이", cloudsL: "왼쪽 구름", cloudsR: "오른쪽 구름", book: "그림책", drapeL: "왼쪽 커튼", drapeR: "오른쪽 커튼", title: "글자" };
+const NAMES = { valance: "천장 커튼", worldL: "성 쪽 세계", worldR: "우주 쪽 세계", sparkles: "반짝이", cloudsL: "왼쪽 구름", cloudsR: "오른쪽 구름", book: "그림책", drapeL: "왼쪽 커튼", drapeR: "오른쪽 커튼", title: "글자", fade: "아래 그라데이션" };
 // 실제 앱에서의 무대 높이: 기본 clamp(340, 62vh, 660), 폭 640 미만 clamp(320, 46vh, 420), 극장 화면 clamp(210, 30vh, 320)
 const DEVICES = [
   { key: "phone", w: 390, vh: 844 },
@@ -187,11 +191,11 @@ function panel() {
   const L = cfg.layers[sel];
   $("#pname").textContent = NAMES[sel];
   $("#editing").textContent = `지금 고치는 배치: ${sizeName(key)}`;
-  [...$("#layers").children].forEach(b => b.classList.toggle("on", b.dataset.id === sel));
-  [...$("#layers").children].forEach(b => b.querySelector("small").textContent = cfg.layers[b.dataset.id].hide ? "숨김" : "");
-  $("#anchorBox").classList.toggle("off", sel === "valance");
-  $("#xRow").classList.toggle("off", sel === "valance");
-  $("#sizeRow").classList.toggle("off", sel === "title");
+  list();
+  $("#anchorBox").classList.toggle("off", sel === "valance" || sel === "fade");
+  $("#xRow").classList.toggle("off", sel === "valance" || sel === "fade");
+  $("#sizeRow").classList.toggle("off", sel === "title" || sel === "fade");
+  $("#yRow").classList.toggle("off", sel === "fade");
   [...$("#grid9").children].forEach(b => b.classList.toggle("on", b.dataset.a === L.anchor));
   if (document.activeElement !== $("#hn")) $("#hn").value = L.h ?? "";
   $("#hr").value = L.h ?? 50;
@@ -212,9 +216,25 @@ function setDevice(i) {
 DEVICES.forEach((d, i) => {
   const b = document.createElement("button"); b.textContent = sizeName(d.key); b.onclick = () => setDevice(i); $("#devices").append(b);
 });
-for (const id in NAMES) {
-  const b = document.createElement("button"); b.dataset.id = id; b.innerHTML = `<span>${NAMES[id]}</span><small></small>`;
-  b.onclick = () => { sel = id; render(); }; $("#layers").append(b);
+// 그림 목록: 위에 있을수록 앞에 보여요. ▲▼로 순서를 바꿔요(지금 규격의 배치에만).
+function list() {
+  const box = $("#layers"), top = [...cfg.order].reverse();
+  box.innerHTML = "";
+  top.forEach((id, i) => {
+    const row = document.createElement("div"); row.className = "li";
+    const b = document.createElement("button"); b.className = id === sel ? "on" : "";
+    b.innerHTML = `<span>${NAMES[id]}</span><small>${cfg.layers[id].hide ? "숨김" : ""}</small>`;
+    b.onclick = () => { sel = id; render(); };
+    const up = document.createElement("button"); up.className = "mv"; up.textContent = "▲"; up.title = "앞으로"; up.setAttribute("aria-label", NAMES[id] + " 앞으로"); up.disabled = i === 0;
+    const dn = document.createElement("button"); dn.className = "mv"; dn.textContent = "▼"; dn.title = "뒤로"; dn.setAttribute("aria-label", NAMES[id] + " 뒤로"); dn.disabled = i === top.length - 1;
+    up.onclick = () => move(id, 1); dn.onclick = () => move(id, -1);
+    row.append(b, up, dn); box.append(row);
+  });
+}
+function move(id, d) {
+  const o = cfg.order, i = o.indexOf(id), j = i + d;
+  if (j < 0 || j >= o.length) return;
+  [o[i], o[j]] = [o[j], o[i]]; sel = id; render(); dirty();
 }
 const ARROWS = { lt: "↖", ct: "↑", rt: "↗", lm: "←", cm: "•", rm: "→", lb: "↙", cb: "↓", rb: "↘" };
 for (const a in ARROWS) {
@@ -285,7 +305,7 @@ let changed = false;
 function dirty() { changed = true; status("저장하지 않은 변경이 있어요"); }
 function status(t) { $("#status").textContent = t; }
 function cleanOne(c) {
-  const out = { maxWidth: Math.round(c.maxWidth), layers: {} };
+  const out = { maxWidth: Math.round(c.maxWidth), order: [...c.order], layers: {} };
   for (const id in c.layers) {
     const L = {}; for (const k in c.layers[id]) { const v = c.layers[id][k]; L[k] = typeof v === "number" ? Math.round(v * 10) / 10 : v; }
     out.layers[id] = L;

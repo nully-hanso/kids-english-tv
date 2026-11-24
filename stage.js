@@ -11,6 +11,7 @@
        x, y:   고정점에서 옮긴 거리(오른쪽·아래가 +). 단위는 무대 높이의 %.
        h:      그림 높이(무대 높이의 %). 폭은 그림 비율대로.
        o:      불투명도(0~1), hide: true면 숨김
+   - order: 그림 순서(앞쪽이 뒤에, 끝쪽이 맨 앞에 보여요). fade는 무대 아래를 어둡게 덮는 그라데이션.
      valance(천장 커튼)는 무대 전체 폭에 가로로 반복돼요. h는 한 칸의 높이, y는 위에서 내린 거리. */
 (function () {
   const SIZES = [
@@ -32,7 +33,9 @@
       drapeL:   { anchor: "lt", x: 0, y: 0, h: 100 },
       drapeR:   { anchor: "rt", x: 0, y: 0, h: 100 },
       title:    { anchor: "ct", x: 0, y: 24 },
+      fade:     {},
     },
+    order: ["worldL", "worldR", "sparkles", "cloudsL", "cloudsR", "book", "fade", "drapeL", "drapeR", "valance", "title"],
   };
 
   function sizeKey(w, portrait) {
@@ -45,6 +48,10 @@
   function merge(cfg) {
     const out = { maxWidth: (cfg && cfg.maxWidth) || DEFAULT.maxWidth, layers: {} };
     for (const k in DEFAULT.layers) out.layers[k] = Object.assign({}, DEFAULT.layers[k], cfg && cfg.layers && cfg.layers[k]);
+    // 순서: 저장된 순서를 따르고, 새로 생긴 그림은 기본 순서의 자리에 끼워 넣기
+    const order = ((cfg && cfg.order) || []).filter((k, i, a) => k in DEFAULT.layers && a.indexOf(k) === i);
+    DEFAULT.order.forEach((k, i) => { if (!order.includes(k)) order.splice(Math.min(i, order.length), 0, k); });
+    out.order = order;
     return out;
   }
   // 파일 전체: 규격마다 배치 하나씩(없는 규격은 다른 규격이나 예전 한 장짜리 배치를 따라감)
@@ -61,12 +68,14 @@
     frame.style.width = `min(100%, ${cfg.maxWidth}px)`;
     const H = frame.clientHeight || scene.clientHeight;
     const px = v => (v || 0) * H / 100 + "px";
+    cfg.order.forEach((id, i) => { const el = scene.querySelector(`[data-layer="${id}"]`); if (el) el.style.zIndex = 2 + i; });
     for (const id in cfg.layers) {
       const el = scene.querySelector(`[data-layer="${id}"]`);
       if (!el) continue;
       const L = cfg.layers[id];
       el.style.display = L.hide ? "none" : "";
       el.style.opacity = L.o == null ? "" : L.o;
+      if (id === "fade") continue;
       if (id === "valance") {
         el.style.top = px(L.y); el.style.height = px(L.h);
         continue;

@@ -1,0 +1,14 @@
+/* 무대 그림 공통 모양(첫 화면과 배치 도구가 함께 씀). 위치·크기는 stage.js가 stage.json대로 정해요. */
+.scene .sky { position: absolute; inset: 0; background: #120d38 url(assets/sky.webp) center bottom / cover no-repeat; }
+.stage-frame { position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto; }
+.stage-frame > img { position: absolute; max-width: none; display: block; }
+.scene .sparkles { pointer-events: none; animation: drift 9s ease-in-out infinite; }
+@keyframes drift { 50% { transform: translateY(-8px); } }
+.scene .clouds { pointer-events: none; }
+.valance3 { position: absolute; z-index: 4; left: 0; right: 0; top: 0; background: url(assets/valance.webp) center top / auto 100% repeat-x; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+.scene .drape { z-index: 3; transition: transform 1.6s cubic-bezier(.6,0,.2,1); filter: drop-shadow(0 0 14px rgba(0,0,0,.5)); }
+.scene .drape.left { transform-origin: left center; }
+.scene .drape.right { transform-origin: right center; }
+.home.closed .drape { transform: scaleX(2.3); }
+.scene .title { position: absolute; z-index: 5; transform: rotate(-5deg); width: min(86%, 760px); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .scene .sparkles { animation: none; } .scene .drape { transition: none; } }

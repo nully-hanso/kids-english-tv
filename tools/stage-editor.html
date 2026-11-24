@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>무대 배치 도구</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../stage.css">
+<style>
+:root { --midnight: #17132f; --panel: #241d44; --line: rgba(175,160,212,.35); --gold: #ffc857; --cream: #fff0d5; --lavender: #afa0d4; --ink: #f4efff; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--midnight); color: var(--ink); font: 15px/1.45 "Jua", system-ui, sans-serif; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: auto 1fr; }
+header { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+header h1 { font-size: 18px; margin: 0 8px 0 0; font-weight: 400; color: var(--gold); }
+.seg { display: flex; gap: 4px; flex-wrap: wrap; }
+button { font: inherit; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+button:hover { background: rgba(255,255,255,.14); }
+button.on { background: var(--gold); color: #2a1a00; border-color: var(--gold); }
+button.primary { background: var(--gold); color: #2a1a00; border-color: var(--gold); font-size: 16px; padding: 9px 14px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+label.inline { display: inline-flex; align-items: center; gap: 6px; color: var(--lavender); }
+input[type=number] { width: 72px; font: inherit; color: var(--ink); background: rgba(0,0,0,.25); border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; }
+input[type=range] { accent-color: var(--gold); }
+#stageWrap { position: relative; overflow: auto; padding: 24px; display: flex; align-items: flex-start; justify-content: center; }
+#fit { position: relative; flex: none; }
+#scene { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; background: #120d38; box-shadow: 0 0 0 1px var(--line), 0 20px 50px rgba(0,0,0,.5); touch-action: none; }
+#scene::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 18%; z-index: 1; background: linear-gradient(transparent, var(--midnight)); pointer-events: none; }
+#scene [data-layer] { pointer-events: auto; cursor: grab; user-select: none; -webkit-user-drag: none; }
+#scene.dragging, #scene.dragging [data-layer] { cursor: grabbing; }
+.stage-frame::before { content: ""; position: absolute; inset: 0; z-index: 8; border-left: 2px dashed rgba(255,200,87,.6); border-right: 2px dashed rgba(255,200,87,.6); pointer-events: none; }
+.title { pointer-events: auto; }
+.motto { margin: 0; color: var(--cream); font-family: "Fredoka", sans-serif; font-weight: 700; line-height: 1.02; text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
+.motto-ko { margin: 10px 0 0; color: var(--gold); font-family: "Jua", sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
+#sel { position: absolute; z-index: 20; outline: 2px solid var(--gold); outline-offset: -1px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(10,6,30,.25); }
+#pins { position: absolute; inset: 0; z-index: 21; pointer-events: none; overflow: visible; }
+aside { border-left: 1px solid var(--line); background: var(--panel); padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+aside h2 { font-size: 16px; font-weight: 400; color: var(--gold); margin: 0 0 8px; }
+.layers { display: grid; gap: 4px; }
+.layers button { text-align: left; display: flex; justify-content: space-between; }
+.layers button small { color: inherit; opacity: .7; }
+.grid9 { display: grid; grid-template-columns: repeat(3, 40px); gap: 4px; }
+.grid9 button { height: 40px; padding: 0; font-size: 18px; }
+.row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.row > span { width: 64px; color: var(--lavender); flex: none; }
+.row input[type=range] { flex: 1; min-width: 0; }
+.help { color: var(--lavender); font-size: 13px; margin: 6px 0 0; }
+#status { min-height: 1.4em; color: var(--gold); font-size: 14px; }
+.actions { display: grid; gap: 8px; }
+.off { opacity: .4; pointer-events: none; }
+@media (max-width: 760px) { body { grid-template-columns: 1fr; grid-template-rows: auto auto auto; } aside { border-left: 0; border-top: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>무대 배치 도구</h1>
+  <div class="seg" id="devices" role="group" aria-label="화면 크기"></div>
+  <label class="inline">폭 <input type="number" id="w" min="320" max="2400" step="10"></label>
+  <label class="inline">높이 <input type="number" id="h" min="200" max="900" step="10"></label>
+  <label class="inline"><input type="checkbox" id="small"> 극장 화면(작아진 무대)</label>
+</header>
+
+<main id="stageWrap">
+  <div id="fit">
+    <section class="scene" id="scene">
+      <div class="sky"></div>
+      <div class="stage-frame">
+        <img class="world-img" data-layer="world" src="../assets/world.webp" alt="그림책 세계">
+        <img class="sparkles" data-layer="sparkles" src="../assets/sparkles.webp" alt="반짝이">
+        <img class="clouds" data-layer="clouds" src="../assets/clouds.webp" alt="구름">
+        <img class="drape left" data-layer="drapeL" src="../assets/curtain-left.webp" alt="왼쪽 커튼">
+        <img class="drape right" data-layer="drapeR" src="../assets/curtain-right.webp" alt="오른쪽 커튼">
+        <div class="title" data-layer="title">
+          <h2 class="motto" lang="en">To infinity<br>and beyond!</h2>
+          <p class="motto-ko">무한한 공간 저 너머로!</p>
+        </div>
+      </div>
+      <div class="valance3" data-layer="valance"></div>
+      <div id="sel" hidden></div>
+      <svg id="pins" aria-hidden="true"></svg>
+    </section>
+  </div>
+</main>
+
+<aside>
+  <section>
+    <h2>그림 고르기</h2>
+    <div class="layers" id="layers"></div>
+    <p class="help">무대에서 그림을 끌어 옮겨요. 겹친 그림은 여기서 고르고, 화살표 키로 조금씩(Shift는 크게) 옮길 수 있어요.</p>
+  </section>
+
+  <section id="props">
+    <h2 id="pname">그림</h2>
+    <div id="anchorBox">
+      <div class="row"><span>고정점</span>
+        <div class="grid9" id="grid9" role="group" aria-label="고정점"></div>
+      </div>
+      <p class="help">그림의 이 점이 무대 틀의 같은 점에 붙어 있어요. 화면 폭이 바뀌면 이 점을 따라 움직여요. 금색 점은 틀의 고정점, 테두리 점은 그림의 고정점이에요.</p>
+    </div>
+    <div class="row" id="sizeRow"><span>크기</span><input type="range" id="hr" min="5" max="200" step="1"><input type="number" id="hn" step="1"></div>
+    <div class="row" id="xRow"><span>가로</span><input type="number" id="x" step=".5"><small class="help">높이의 %</small></div>
+    <div class="row"><span>세로</span><input type="number" id="y" step=".5"><small class="help">높이의 %</small></div>
+    <div class="row"><span>불투명도</span><input type="range" id="o" min="0" max="1" step=".05"></div>
+    <div class="row"><span>보이기</span><input type="checkbox" id="vis"></div>
+  </section>
+
+  <section>
+    <h2>무대 틀</h2>
+    <div class="row"><span>최대 폭</span><input type="range" id="mwr" min="600" max="2000" step="10"><input type="number" id="mwn" step="10"></div>
+    <p class="help">점선이 무대 틀이에요. 화면이 이보다 넓어도 커튼과 그림은 점선 안에서만 움직이고, 우주 배경과 천장 커튼만 끝까지 이어져요.</p>
+  </section>
+
+  <section class="actions">
+    <button class="primary" id="save">저장</button>
+    <button id="reload">저장된 배치 다시 불러오기</button>
+    <button id="reset">처음 배치로</button>
+    <div id="status" role="status"></div>
+  </section>
+</aside>
+
+<script src="../stage.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const NAMES = { valance: "천장 커튼", world: "그림책 세계", sparkles: "반짝이", clouds: "구름", drapeL: "왼쪽 커튼", drapeR: "오른쪽 커튼", title: "글자" };
+// 실제 앱에서의 무대 높이: 기본 clamp(340, 62vh, 660), 폭 640 미만 clamp(320, 46vh, 420), 극장 화면 clamp(210, 30vh, 320)
+const DEVICES = [
+  { name: "아이폰", w: 390, vh: 844 },
+  { name: "아이패드 세로", w: 820, vh: 1180 },
+  { name: "아이패드 가로", w: 1180, vh: 820 },
+  { name: "넓은 화면", w: 1600, vh: 900 },
+];
+const clamp = (a, v, b) => Math.max(a, Math.min(b, v));
+function sceneHeight(w, vh, small) {
+  if (small) return Math.round(clamp(210, vh * .30, 320));
+  return Math.round(w < 640 ? clamp(320, vh * .46, 420) : clamp(340, vh * .62, 660));
+}
+
+let cfg = Stage.merge(null), sel = "world", dev = 2, W = 1180, H = 508;
+const scene = $("#scene");
+
+function render() {
+  scene.style.width = W + "px"; scene.style.height = H + "px";
+  // 글자 크기도 앱과 같은 규칙(화면 폭 기준)
+  const small = $("#small").checked;
+  scene.querySelector(".motto").style.fontSize = (small ? clamp(30, W * .07, 62) : clamp(36, W * .072, 84)) + "px";
+  scene.querySelector(".motto-ko").style.fontSize = clamp(18, W * .046, 34) + "px";
+  Stage.place(scene, cfg);
+  fit(); mark(); panel();
+}
+function fit() {
+  const wrap = $("#stageWrap"), avail = wrap.clientWidth - 48;
+  const k = Math.min(1, avail / W);
+  scene.style.transform = `scale(${k})`; scene.dataset.k = k;
+  $("#fit").style.width = W * k + "px"; $("#fit").style.height = H * k + "px";
+}
+const layerEl = id => scene.querySelector(`[data-layer="${id}"]`);
+const kk = () => +scene.dataset.k || 1;
+
+// 선택 테두리와 고정점 표시
+function mark() {
+  const el = layerEl(sel), box = $("#sel"), svg = $("#pins");
+  svg.innerHTML = "";
+  if (!el || el.style.display === "none") { box.hidden = true; return; }
+  const s = scene.getBoundingClientRect(), r = el.getBoundingClientRect(), k = kk();
+  const L = (r.left - s.left) / k, T = (r.top - s.top) / k, Wd = r.width / k, Ht = r.height / k;
+  Object.assign(box.style, { left: L + "px", top: T + "px", width: Wd + "px", height: Ht + "px" }); box.hidden = false;
+  if (sel === "valance") return;
+  const f = scene.querySelector(".stage-frame").getBoundingClientRect();
+  const fL = (f.left - s.left) / k, fW = f.width / k;
+  const a = cfg.layers[sel].anchor, fx = { l: 0, c: .5, r: 1 }[a[0]], fy = { t: 0, m: .5, b: 1 }[a[1]];
+  const px = fL + fW * fx, py = H * fy, ix = L + Wd * fx, iy = T + Ht * fy;
+  svg.innerHTML = `<line x1="${px}" y1="${py}" x2="${ix}" y2="${iy}" stroke="#ffc857" stroke-width="2" stroke-dasharray="5 4"/>
+    <circle cx="${ix}" cy="${iy}" r="8" fill="none" stroke="#fff" stroke-width="3"/>
+    <circle cx="${px}" cy="${py}" r="7" fill="#ffc857" stroke="#2a1a00" stroke-width="2"/>`;
+}
+
+// 오른쪽 판
+function panel() {
+  const L = cfg.layers[sel];
+  $("#pname").textContent = NAMES[sel];
+  [...$("#layers").children].forEach(b => b.classList.toggle("on", b.dataset.id === sel));
+  [...$("#layers").children].forEach(b => b.querySelector("small").textContent = cfg.layers[b.dataset.id].hide ? "숨김" : "");
+  $("#anchorBox").classList.toggle("off", sel === "valance");
+  $("#xRow").classList.toggle("off", sel === "valance");
+  $("#sizeRow").classList.toggle("off", sel === "title");
+  [...$("#grid9").children].forEach(b => b.classList.toggle("on", b.dataset.a === L.anchor));
+  if (document.activeElement !== $("#hn")) $("#hn").value = L.h ?? "";
+  $("#hr").value = L.h ?? 50;
+  if (document.activeElement !== $("#x")) $("#x").value = +(L.x || 0).toFixed(1);
+  if (document.activeElement !== $("#y")) $("#y").value = +(L.y || 0).toFixed(1);
+  $("#o").value = L.o ?? 1;
+  $("#vis").checked = !L.hide;
+  $("#mwr").value = cfg.maxWidth;
+  if (document.activeElement !== $("#mwn")) $("#mwn").value = cfg.maxWidth;
+  $("#w").value = W; $("#h").value = H;
+  [...$("#devices").children].forEach((b, i) => b.classList.toggle("on", i === dev));
+}
+
+function setDevice(i) {
+  dev = i; const d = DEVICES[i];
+  W = d.w; H = sceneHeight(d.w, d.vh, $("#small").checked); render();
+}
+DEVICES.forEach((d, i) => {
+  const b = document.createElement("button"); b.textContent = d.name; b.onclick = () => setDevice(i); $("#devices").append(b);
+});
+for (const id in NAMES) {
+  const b = document.createElement("button"); b.dataset.id = id; b.innerHTML = `<span>${NAMES[id]}</span><small></small>`;
+  b.onclick = () => { sel = id; render(); }; $("#layers").append(b);
+}
+const ARROWS = { lt: "↖", ct: "↑", rt: "↗", lm: "←", cm: "•", rm: "→", lb: "↙", cb: "↓", rb: "↘" };
+for (const a in ARROWS) {
+  const b = document.createElement("button"); b.dataset.a = a; b.textContent = ARROWS[a]; b.title = a;
+  b.onclick = () => changeAnchor(a); $("#grid9").append(b);
+}
+
+// 고정점을 바꿔도 그림이 지금 자리에 그대로 있도록 x, y를 다시 계산
+function changeAnchor(a) {
+  const el = layerEl(sel), L = cfg.layers[sel];
+  const s = scene.querySelector(".stage-frame").getBoundingClientRect(), r = el.getBoundingClientRect(), k = kk();
+  const fw = s.width / k, rl = (r.left - s.left) / k, rr = (r.right - s.left) / k, rt = (r.top - s.top) / k, rb = (r.bottom - s.top) / k;
+  const u = v => v / H * 100;
+  L.x = a[0] === "l" ? u(rl) : a[0] === "r" ? -u(fw - rr) : u((rl + rr) / 2 - fw / 2);
+  L.y = a[1] === "t" ? u(rt) : a[1] === "b" ? -u(H - rb) : u((rt + rb) / 2 - H / 2);
+  L.anchor = a; render(); dirty();
+}
+
+// 끌어서 옮기기
+let drag = null;
+scene.addEventListener("pointerdown", e => {
+  const hits = document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest("[data-layer]")).filter(Boolean);
+  if (!hits.length) return;
+  const id = hits.some(h => h.dataset.layer === sel) ? sel : hits[0].dataset.layer;
+  sel = id; const L = cfg.layers[id];
+  drag = { x: e.clientX, y: e.clientY, x0: L.x || 0, y0: L.y || 0 };
+  scene.setPointerCapture(e.pointerId); scene.classList.add("dragging"); e.preventDefault(); render();
+});
+scene.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const L = cfg.layers[sel], k = kk();
+  const dx = (e.clientX - drag.x) / k / H * 100, dy = (e.clientY - drag.y) / k / H * 100;
+  if (sel !== "valance") L.x = Math.round((drag.x0 + dx) * 10) / 10;
+  L.y = Math.round((drag.y0 + dy) * 10) / 10;
+  render(); dirty();
+});
+const endDrag = () => { drag = null; scene.classList.remove("dragging"); };
+scene.addEventListener("pointerup", endDrag); scene.addEventListener("pointercancel", endDrag);
+
+addEventListener("keydown", e => {
+  if (e.target.matches("input")) return;
+  const step = e.shiftKey ? 2 : .5, L = cfg.layers[sel];
+  const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  if (sel !== "valance") L.x = Math.round(((L.x || 0) + d[0]) * 10) / 10;
+  L.y = Math.round(((L.y || 0) + d[1]) * 10) / 10;
+  render(); dirty();
+});
+
+const num = v => (v === "" || isNaN(+v)) ? null : +v;
+$("#hr").oninput = e => { cfg.layers[sel].h = +e.target.value; render(); dirty(); };
+$("#hn").oninput = e => { const v = num(e.target.value); if (v) { cfg.layers[sel].h = v; render(); dirty(); } };
+$("#x").oninput = e => { const v = num(e.target.value); if (v != null) { cfg.layers[sel].x = v; render(); dirty(); } };
+$("#y").oninput = e => { const v = num(e.target.value); if (v != null) { cfg.layers[sel].y = v; render(); dirty(); } };
+$("#o").oninput = e => { const v = +e.target.value; if (v >= 1) delete cfg.layers[sel].o; else cfg.layers[sel].o = v; render(); dirty(); };
+$("#vis").onchange = e => { if (e.target.checked) delete cfg.layers[sel].hide; else cfg.layers[sel].hide = true; render(); dirty(); };
+$("#mwr").oninput = e => { cfg.maxWidth = +e.target.value; render(); dirty(); };
+$("#mwn").oninput = e => { const v = num(e.target.value); if (v >= 320) { cfg.maxWidth = v; render(); dirty(); } };
+$("#w").onchange = e => { W = clamp(320, +e.target.value || W, 2400); dev = -1; render(); };
+$("#h").onchange = e => { H = clamp(200, +e.target.value || H, 900); dev = -1; render(); };
+$("#small").onchange = () => dev >= 0 ? setDevice(dev) : render();
+addEventListener("resize", () => { fit(); mark(); });
+scene.querySelectorAll("img").forEach(i => i.addEventListener("load", mark));
+
+// 저장
+let changed = false;
+function dirty() { changed = true; status("저장하지 않은 변경이 있어요"); }
+function status(t) { $("#status").textContent = t; }
+function clean() {
+  const out = { maxWidth: Math.round(cfg.maxWidth), layers: {} };
+  for (const id in cfg.layers) {
+    const L = {}; for (const k in cfg.layers[id]) { const v = cfg.layers[id][k]; L[k] = typeof v === "number" ? Math.round(v * 10) / 10 : v; }
+    out.layers[id] = L;
+  }
+  return out;
+}
+$("#save").onclick = async () => {
+  const body = JSON.stringify(clean(), null, 2) + "\n";
+  try {
+    const r = await fetch("../stage.json", { method: "PUT", headers: { "Content-Type": "application/json" }, body });
+    if (!r.ok) throw new Error(r.status);
+    changed = false; status("저장했어요. 집 화면에 반영하려면 Claude에게 배포해 달라고 해 주세요.");
+  } catch {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([body], { type: "application/json" })); a.download = "stage.json"; a.click();
+    changed = false; status("여기서는 바로 저장할 수 없어서 stage.json 파일로 내려받았어요. kids-english-tv 폴더에 넣어 주세요.");
+  }
+};
+async function load() {
+  try {
+    const r = await fetch("../stage.json?t=" + Date.now(), { cache: "no-store" });
+    cfg = Stage.merge(r.ok ? await r.json() : null); changed = false; status(r.ok ? "저장된 배치를 불러왔어요" : "처음 배치예요");
+  } catch { cfg = Stage.merge(null); status("처음 배치예요"); }
+  render();
+}
+$("#reload").onclick = load;
+$("#reset").onclick = () => { cfg = Stage.merge(null); render(); dirty(); };
+addEventListener("beforeunload", e => { if (changed) e.preventDefault(); });
+
+setDevice(2); load();
+</script>
+</body>
+</html>

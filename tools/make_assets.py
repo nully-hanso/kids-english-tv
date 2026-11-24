@@ -66,7 +66,14 @@ c = src("theater_curtains"); w, h = c.size
 save(trim(c.crop((0, 0, w // 2, h))), "curtain-left.webp", 700)
 save(trim(c.crop((w // 2, 0, w, h))), "curtain-right.webp", 700)
 
-save(trim(src("valance")), "valance.webp", 1800)
+# 천장 커튼: 가운데 주름 한 칸(술 장식 사이)만 잘라 가로로 이어 붙일 수 있게
+v = np.asarray(trim(src("valance"))).astype(np.float32)
+P, X0, FW = 596, 895, 70          # 반복 폭, 시작 위치(술 장식 한가운데), 이음매 섞는 폭
+H = 410                           # 주름 아래 끝까지의 높이
+t = v[:H, X0:X0 + P].copy()
+wgt = (np.arange(FW) / FW)[None, :, None]
+t[:, :FW] = v[:H, X0:X0 + FW] * wgt + v[:H, X0 + P:X0 + P + FW] * (1 - wgt)
+save(Image.fromarray(t.astype(np.uint8), "RGBA"), "valance.webp", 600)
 save(trim(src("clouds")), "clouds.webp", 1800)
 save(trim(src("light_effects")), "sparkles.webp", 1400)
 save(trim(src("castle")), "icon-morning.webp", 360)

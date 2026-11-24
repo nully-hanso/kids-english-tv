@@ -385,6 +385,27 @@ body { background: var(--midnight); }
 .title::before { content: ""; position: absolute; z-index: -1; inset: -28% -12%; background: radial-gradient(closest-side, rgba(16,10,46,.72), rgba(16,10,46,.35) 60%, transparent); border-radius: 50%; }
 .home .motto { text-shadow: 0 0 18px rgba(255,200,87,.55), 0 3px 0 rgba(90,40,0,.55), 0 6px 18px rgba(0,0,0,.6); }
 .dicon { object-fit: contain; }
+/* 오늘 이미 쓴 시간: 흐리게, 엄마 아빠 확인을 거쳐야 열려요 */
+.home .door.spent { opacity: .55; }
+.chev svg { width: 46%; height: 46%; }
+.timepill { border: 0; font-size: 16px; cursor: pointer; }
+/* 타이머 창(멈추기·끄기)과 엄마 아빠 확인 */
+.sheet { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(12,9,30,.74); }
+.sheet .card { width: min(100%, 360px); background: var(--paper); color: var(--ink); border-radius: 26px; padding: 24px 20px 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.sheet h3 { margin: 0; font-weight: 400; font-size: 24px; }
+.sheet .note { margin: 0 0 4px; color: var(--muted); font-size: 16px; line-height: 1.35; }
+.sheet .left { margin: 0; font-family: var(--display); font-weight: 700; font-size: 44px; font-variant-numeric: tabular-nums; }
+.sheet .main { border: 0; border-radius: 999px; background: var(--sun); color: var(--ink); font-family: var(--ko); font-size: 21px; padding: 15px; cursor: pointer; }
+.sheet .line { border: 2px solid var(--line); border-radius: 999px; background: none; color: var(--ink); font-family: var(--ko); font-size: 17px; padding: 12px; cursor: pointer; }
+.sheet .plain { border: 0; background: none; color: var(--muted); font-family: var(--ko); font-size: 16px; padding: 8px; cursor: pointer; }
+.gate-q { margin: 0; font-family: var(--display); font-weight: 700; font-size: 40px; font-variant-numeric: tabular-nums; }
+.gate-a { height: 54px; border-radius: 14px; background: var(--bg); display: grid; place-items: center; font-family: var(--display); font-size: 30px; font-variant-numeric: tabular-nums; }
+.gate-a.wrong { animation: gshake .35s; background: #ffe3e4; }
+@keyframes gshake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pad button { border: 0; border-radius: 14px; background: var(--bg); color: var(--ink); font-family: var(--display); font-size: 26px; padding: 10px 0; cursor: pointer; }
+.pad button:active { background: var(--line); }
+.pad .go { background: var(--ink); color: #fff; font-family: var(--ko); font-size: 19px; }
 </style>
 <link rel="stylesheet" href="stage.css">
 <script src="stage.js"></script>
@@ -456,7 +477,7 @@ body { background: var(--midnight); }
       돌아가기
     </button>
     <div class="now" id="now"></div>
-    <span class="timepill" id="timePill" hidden><span id="pillText"></span></span>
+    <button class="timepill" id="timePill" type="button" hidden><span id="pillText"></span></button>
     <button class="quit" id="quitBtn" type="button" hidden>그만 볼래요</button>
   </div>
   <div class="stage"><div class="frame" id="frame"></div></div>
@@ -474,6 +495,35 @@ body { background: var(--midnight); }
   <h2>오늘 영상은 여기까지!</h2>
   <p id="timeUpMsg">영상 잘 봤어요</p>
   <button class="hold" id="holdBtn" type="button">엄마 아빠가 3초 꾹 누르면 닫혀요</button>
+</div>
+
+<!-- 타이머를 누르면: 잠깐 멈추기(남은 시간 그대로) / 끄기(엄마 아빠 확인) -->
+<div class="sheet" id="ctl" hidden>
+  <div class="card">
+    <p class="note">남은 시간</p>
+    <p class="left" id="ctlLeft"></p>
+    <button class="main" id="ctlPause" type="button">잠깐 멈추고 나가기</button>
+    <p class="note">남은 시간은 그대로 있어요. 돌아와서 이어 봐요.</p>
+    <button class="line" id="ctlStop" type="button">타이머 끄기</button>
+    <button class="plain" id="ctlClose" type="button">계속 볼래요</button>
+  </div>
+</div>
+
+<!-- 엄마 아빠 확인: 곱셈 문제를 맞혀야 열려요 -->
+<div class="sheet" id="gate" hidden>
+  <div class="card">
+    <h3>엄마 아빠 확인</h3>
+    <p class="note" id="gateWhy"></p>
+    <p class="gate-q" id="gateQ"></p>
+    <div class="gate-a" id="gateA"></div>
+    <div class="pad" id="gatePad">
+      <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+      <button type="button" data-k="del" aria-label="지우기">⌫</button><button type="button" data-k="0">0</button><button type="button" class="go" data-k="go">확인</button>
+    </div>
+    <button class="plain" id="gateCancel" type="button">취소</button>
+  </div>
 </div>
 
 <script>
@@ -669,18 +719,31 @@ const isDone = v => !!(v && prog[v.id] && (prog[v.id].done || prog[v.id].quit));
 const isQuit = v => !!(v && prog[v.id] && prog[v.id].quit);
 function renderHome(justId) {
   const m = timerEnd ? mode : null;
-  $("#home").classList.toggle("idle", !m);
+  $("#home").classList.toggle("idle", !m && !pausedLeft);
   $("#home").classList.toggle("th", m === "theater");
   $("#undo").hidden = !inGrace();
-  $("#doors").hidden = !!m;
+  $("#doors").hidden = !!m || !!pausedLeft;
   $("#tickets").hidden = $("#stamps").hidden = $("#habit").hidden = m !== "theater";
+  if (pausedLeft) {   // 잠깐 멈춘 동안: 이어 보기만
+    $("#motto").innerHTML = "잠깐<br>멈췄어요"; $("#mottoKo").hidden = true;
+    $("#sub").textContent = `${mode === "morning" ? "아침 방송" : "극장"} 시간이 ${Math.ceil(pausedLeft / 60000)}분 남았어요`;
+    $("#cta").hidden = false; $("#cta").textContent = "이어서 보기";
+    return;
+  }
   if (m !== "theater") {
+    const u = usedToday();
+    [["#goMorning", "morning"], ["#goTheater", "theater"]].forEach(([id, k]) => {
+      $(id).classList.toggle("spent", !!u[k]);
+      $(id + " .chev").innerHTML = u[k] ? LOCK : "›";
+    });
     const k = todayKey();
     $("#motto").innerHTML = m === "morning" ? "아침 방송<br>시작했어요" : "To infinity<br>and beyond!";
     $("#mottoKo").hidden = m === "morning";
     $("#morningInfo").textContent = epLabel(k, nextEp(k));
     const left = basket.items.filter(v => !isDone(v)).length;
     $("#theaterInfo").textContent = basket.locked && left ? `티켓 ${left}장 남았어요` : "영상 3개 골라 보기";
+    if (u.morning) $("#morningInfo").textContent = "오늘은 다 봤어요";
+    if (u.theater) $("#theaterInfo").textContent = "오늘은 다 봤어요";
     $("#sub").textContent = m === "morning" ? epLabel(k, nextEp(k)) : "어떤 시간으로 시작할까요?";
     $("#cta").hidden = m !== "morning"; $("#cta").textContent = "방송 이어 보기";
     return;
@@ -722,12 +785,15 @@ function renderHome(justId) {
   }
 }
 
-$("#goMorning").addEventListener("click", () => { startTimer(15, "morning"); playMorning(); });
-$("#goTheater").addEventListener("click", () => {
-  startTimer(30, "theater");
-  if (!basket.locked) openPicker();
-});
+// 문은 하루에 한 번씩. 오늘 이미 쓴 문은 엄마 아빠 확인을 거쳐야 다시 열려요.
+function openDoor(m, min, name, go) {
+  const run = () => { startTimer(min, m); go(); };
+  if (usedToday()[m]) gate(`오늘 ${name}은 이미 봤어요. 한 번 더 열어 줄까요?`, run); else run();
+}
+$("#goMorning").addEventListener("click", () => openDoor("morning", 15, "아침 방송", playMorning));
+$("#goTheater").addEventListener("click", () => openDoor("theater", 30, "극장", () => { if (!basket.locked) openPicker(); }));
 $("#cta").addEventListener("click", () => {
+  if (pausedLeft) return resumeTimer();
   if (mode === "morning") return playMorning();
   if (basket.locked && basket.items.every(isDone)) {
     basket.items.forEach(v => delete prog[v.id]); store.set("prog", prog);
@@ -769,7 +835,7 @@ function openPicker() { if (timeUp || mode !== "theater" || !timerEnd) return; $
 setInterval(() => { $("#pUndo").hidden = $("#picker").hidden || !inGrace(); }, 1000);
 function closePicker() { $("#picker").hidden = true; renderHome(); }
 $("#pClose").addEventListener("click", closePicker);
-$("#pUndo").addEventListener("click", cancelTimer);
+$("#pUndo").addEventListener("click", undoStart);
 $("#pOk").addEventListener("click", () => {
   if (basket.items.length < 3) return;
   basket.locked = true; saveBasket(); closePicker();
@@ -1028,24 +1094,51 @@ let wasOn = !!timerEnd;
 const GRACE = 180000;
 let timerStart = +store.get("timerStart", 0) || 0;
 const inGrace = () => !!timerEnd && Date.now() - timerStart < GRACE;
+/* 잠깐 멈추기: 남은 시간을 pausedLeft에 보관하고, '이어서 보기'를 누르면 거기서부터 다시 흘러요 */
+let pausedLeft = +store.get("pausedLeft", 0) || 0;
+/* 하루 기록: 오늘 연 문(아침 방송·극장). 날짜가 바뀌면 새로 */
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+function usedToday() { const u = store.get("used", {}); return u && u.d === today() ? u : { d: today() }; }
+function markUsed(m, on) { const u = usedToday(); u[m] = on; store.set("used", u); }
+const LOCK = '<svg viewBox="0 0 24 24" aria-label="잠김"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke="currentColor" stroke-width="2.6" fill="none"/></svg>';
 function cancelTimer() {
-  timerEnd = 0; store.set("timerEnd", null);
-  closePlayer(); $("#picker").hidden = true; tick();
+  timerEnd = 0; pausedLeft = 0; mode = null;
+  store.set("timerEnd", null); store.set("pausedLeft", null); store.set("mode", null);
+  closePlayer(); $("#picker").hidden = true; $("#ctl").hidden = true; tick(); renderHome();
 }
+// 잘못 눌렀을 때(처음 3분): 오늘 쓴 것으로 치지 않아요
+function undoStart() { if (mode) markUsed(mode, false); cancelTimer(); }
 function startTimer(min, m) {
   if (timeUp) return;
+  markUsed(m, true); pausedLeft = 0; store.set("pausedLeft", null);
   timerMin = min; mode = m; timerEnd = Date.now() + min * 60000; timerStart = Date.now();
   store.set("timerMin", min); store.set("mode", m); store.set("timerEnd", timerEnd); store.set("timerStart", timerStart);
   tick();
 }
+function pauseTimer() {
+  if (!timerEnd) return;
+  pausedLeft = Math.max(1000, timerEnd - Date.now()); timerEnd = 0;
+  store.set("pausedLeft", pausedLeft); store.set("timerEnd", null);
+  $("#ctl").hidden = true; closePlayer(); $("#picker").hidden = true; tick(); renderHome();
+}
+function resumeTimer() {
+  if (!pausedLeft || timeUp) return;
+  timerEnd = Date.now() + pausedLeft; pausedLeft = 0; timerStart = 0;   // 이어 볼 때는 '시간 다시 고르기' 없음
+  store.set("timerEnd", timerEnd); store.set("pausedLeft", null); store.set("timerStart", 0);
+  tick(); renderHome();
+  if (mode === "morning") playMorning(); else if (!basket.locked) openPicker();
+}
 function tick() {
   const left = timerEnd ? timerEnd - Date.now() : 0;
-  if (timerEnd && left <= 0) { timerEnd = 0; store.set("timerEnd", null); timeUp = true; store.set("timeUp", "1"); }
+  if (timerEnd && left <= 0) { timerEnd = 0; store.set("timerEnd", null); timeUp = true; store.set("timeUp", "1"); $("#ctl").hidden = true; }
   const on = !!timerEnd;
-  if (on !== wasOn) { wasOn = on; if (!on) { mode = null; store.set("mode", null); } renderHome(); }
+  if (on !== wasOn) { wasOn = on; if (!on && !pausedLeft) { mode = null; store.set("mode", null); } renderHome(); }
   if (!$("#undo").hidden && !inGrace()) $("#undo").hidden = true;
-  $("#timerRun").hidden = !on;
+  $("#timerRun").hidden = !on && !pausedLeft;
+  $("#timerRun").setAttribute("aria-pressed", on ? "true" : "false");
   if (on) $("#timerText").textContent = mmss(Math.ceil(left / 1000)) + " 남음";
+  else if (pausedLeft) $("#timerText").textContent = mmss(Math.ceil(pausedLeft / 1000)) + " 멈춤";
+  if (!$("#ctl").hidden && on) $("#ctlLeft").textContent = mmss(Math.ceil(left / 1000));
   $("#timePill").hidden = !on;
   if (on) $("#pillText").textContent = mmss(Math.ceil(left / 1000));
   if (timeUp && $("#timeUp").hidden) {
@@ -1054,12 +1147,45 @@ function tick() {
     $("#timeUp").hidden = false;
   }
 }
-$("#timerRun").addEventListener("click", () => {
-  if (!inGrace() && !confirm("타이머를 끌까요?")) return;
-  cancelTimer();
+// 타이머를 누르면 창이 떠요: 잠깐 멈추기는 누구나, 끄기는 엄마 아빠만(처음 3분은 '시간 다시 고르기')
+function openCtl() {
+  if (pausedLeft) return resumeTimer();
+  if (!timerEnd) return;
+  $("#ctlStop").textContent = inGrace() ? "잘못 눌렀어요. 시간 다시 고르기" : "타이머 끄기 (엄마 아빠)";
+  $("#ctlLeft").textContent = mmss(Math.ceil((timerEnd - Date.now()) / 1000));
+  $("#ctl").hidden = false;
+}
+$("#timerRun").addEventListener("click", openCtl);
+$("#timePill").addEventListener("click", openCtl);
+$("#ctlClose").addEventListener("click", () => { $("#ctl").hidden = true; });
+$("#ctlPause").addEventListener("click", pauseTimer);
+$("#ctlStop").addEventListener("click", () => {
+  if (inGrace()) return undoStart();
+  $("#ctl").hidden = true;
+  gate("타이머를 끄면 오늘은 이 시간을 다 쓴 것으로 쳐요.", cancelTimer);
 });
 // 버튼이 보일 때 누르면 언제나 첫 화면으로(시간이 막 지난 순간에 눌러도)
-$("#undo").addEventListener("click", cancelTimer);
+$("#undo").addEventListener("click", undoStart);
+
+/* 엄마 아빠 확인: 두 자리 곱셈(6~9단)을 맞히면 열려요. 틀리면 새 문제. */
+let gateFn = null, gateAns = 0, gateIn = "";
+function newQ() {
+  const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+  gateAns = a * b; gateIn = "";
+  $("#gateQ").textContent = `${a} × ${b} = ?`; $("#gateA").textContent = ""; $("#gateA").classList.remove("wrong");
+}
+function gate(why, fn) { gateFn = fn; $("#gateWhy").textContent = why; newQ(); $("#gate").hidden = false; }
+$("#gatePad").addEventListener("click", e => {
+  const k = e.target.closest("button") && e.target.closest("button").dataset.k; if (!k) return;
+  if (k === "del") gateIn = gateIn.slice(0, -1);
+  else if (k === "go") {
+    if (gateIn && +gateIn === gateAns) { $("#gate").hidden = true; const f = gateFn; gateFn = null; f && f(); return; }
+    const a = $("#gateA"); a.classList.remove("wrong"); void a.offsetWidth; a.classList.add("wrong");
+    setTimeout(newQ, 400); return;
+  } else if (gateIn.length < 3) gateIn += k;
+  $("#gateA").textContent = gateIn;
+});
+$("#gateCancel").addEventListener("click", () => { $("#gate").hidden = true; gateFn = null; });
 let holdT = null; const hold = $("#holdBtn");
 hold.addEventListener("pointerdown", e => {
   e.preventDefault(); hold.classList.add("holding");
@@ -1073,9 +1199,9 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 
 /* 홈 화면 앱은 예전 페이지를 계속 들고 있을 수 있어서, 화면으로 돌아올 때와 10분마다 새 버전이 있는지 확인해요.
    영상을 보거나 고르는 중에는 건드리지 않고, 첫 화면에 있을 때만 새로 불러와요. 올릴 때마다 BUILD를 바꿔 주세요. */
-const BUILD = "2026-11-24-7";
+const BUILD = "2026-11-24-8";
 async function checkUpdate() {
-  if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden) return;
+  if (!$("#player").hidden || !$("#picker").hidden || !$("#cheer").hidden || !$("#ctl").hidden || !$("#gate").hidden) return;
   try {
     const t = await (await fetch("./?check=" + Date.now(), { cache: "no-store" })).text();
     const m = t.match(/const BUILD = "([^"]+)"/);

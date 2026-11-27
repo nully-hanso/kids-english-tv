@@ -1,5 +1,5 @@
 {
-"updated": "2026-11-26",
+"updated": "2026-11-27",
 "videos": [
 {
 "ch": "Storyline Online",
@@ -240,6 +240,14 @@
 "id": "obsx3UyulKQ",
 "title": "'The Sound of Silence' read by Simu Liu",
 "sec": 516
+},
+{
+"ch": "Arthur",
+"key": "UCSPzXeCRf12qayHCAtuffzw",
+"cat": "words",
+"id": "88JE4M9kelk",
+"title": "The Snowball Mystery (Part 1) | S5E4: THE ARTHUR PODCAST",
+"sec": 859
 },
 {
 "ch": "Arthur",
@@ -8309,6 +8317,14 @@
 "ch": "Jack Hartmann",
 "key": "UCVcQH8A634mauPrGbWs7QlQ",
 "cat": "arts",
+"id": "rHGeGcjsUng",
+"title": "Letter S | Get Ready, Get Set, Let's Learn About the Alphabet! | Jack Hartmann",
+"sec": 214
+},
+{
+"ch": "Jack Hartmann",
+"key": "UCVcQH8A634mauPrGbWs7QlQ",
+"cat": "arts",
 "id": "YXauLrLAMaE",
 "title": "Letter R | Get Ready, Get Set, Let's Learn About the Alphabet! | Jack Hartmann",
 "sec": 214
@@ -8536,14 +8552,6 @@
 "id": "ilQIiwbDnfI",
 "title": "Computers Are Awesome! | Computer Literacy for Kids | Jack Hartmann",
 "sec": 144
-},
-{
-"ch": "Jack Hartmann",
-"key": "UCVcQH8A634mauPrGbWs7QlQ",
-"cat": "arts",
-"id": "r-da_mkDMDk",
-"title": "Country Count to 10! | Jack Hartmann",
-"sec": 182
 },
 {
 "ch": "Tiny Classics",
